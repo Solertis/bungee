@@ -18,9 +18,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#include <bungee.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <readline/readline.h>
 #include <readline/history.h>
+
+#include "bungee.h"
 
 /* A static variable for holding the line. */
 static char *line_read = (char *)NULL;
