@@ -37,16 +37,6 @@ AC_PROG_LIBTOOL
 dnl Checks for header files.
 AC_CHECK_HEADERS(unistd.h sys/param.h sys/time.h time.h sys/mkdev.h sys/sysmacros.h string.h memory.h fcntl.h dirent.h sys/ndir.h ndir.h alloca.h locale.h )
 
-dnl Check for argp                                                              
-AC_CHECK_HEADER([argp.h], AC_DEFINE(HAVE_ARGP, 1, [have argp]))
-AC_CONFIG_SUBDIRS(contrib/argp-standalone)
-if test "x${ac_cv_header_argp_h}" = "xno"; then
-   ARGP_STANDALONE_CPPFLAGS='-I${top_srcdir}/contrib/argp-standalone'
-   ARGP_STANDALONE_LDADD='${top_builddir}/contrib/argp-standalone/libargp.a'
-fi
-AC_SUBST(ARGP_STANDALONE_CPPFLAGS)
-AC_SUBST(ARGP_STANDALONE_LDADD)
-    
 dnl Checks for typedefs, structures, and compiler characteristics.
 
 dnl Checks for library functions.
@@ -63,8 +53,12 @@ AC_SUBST(PYTHON3_LIBS)
 dnl readline library flags
 AC_SEARCH_LIBS([readline], [readline], , AC_MSG_ERROR([ERROR! libreadline not found...]))
 
-dnl POSIX threads 
-AC_SEARCH_LIBS([pthread_mutex_init], [pthread], , AC_MSG_ERROR([POSIX threads library not found]))
+dnl msgpack library
+AC_CHECK_HEADERS([msgpack.h])
+AC_SEARCH_LIBS([msgpack_version], [msgpack], , AC_MSG_ERROR([msgpack serialization library not found]))
 
+dnl zmq library
+AC_CHECK_HEADERS([zmq.h])
+AC_SEARCH_LIBS([zmq_init], [zmq], , AC_MSG_ERROR([zmq messaging library not found]))
 
 AC_OUTPUT

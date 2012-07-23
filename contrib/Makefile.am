@@ -1,4 +1,4 @@
-SUBDIRS = argp-standalone
+SUBDIRS = 
 
 EXTRA_DIST = 
 

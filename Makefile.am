@@ -15,7 +15,3 @@ maintainer-clean-local:
 	-rm -fr autom4te.cache
 	-rm -f missing aclocal.m4 config.h.in config.guess config.sub ltmain.sh \
 		install-sh configure depcomp
-	-rm -fr contrib/argp-standalone/autom4te.cache
-	-rm -f contrib/argp-standalone/aclocal.m4 contrib/argp-standalone/config.h.in \
-		contrib/argp-standalone/configure contrib/argp-standalone/depcomp \
-		contrib/argp-standalone/install-sh contrib/argp-standalone/missing

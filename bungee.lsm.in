@@ -1,17 +1,15 @@
-Begin3
+Begin4
 Title:		bungee
 Version:	@VERSION@
 Entered-date:	@ISODATE@
 Description:	Bungee is a simple framework for analyzing big unstructured data.
-		@configure_input@
-Keywords:	[bigdata analysis unstructured]
-Author: 	ab@redhat.com (Anand Babu (AB) Periasamy)
-Maintained-by:	ab@redhat.com (Anand Babu (AB) Periasamy)
+Keywords:	bigdata analysis, unstructured
+Author: 	ab@redhat.com (Anand Babu "AB" Periasamy)
+Maintained-by:	ab@redhat.com (Anand Babu "AB" Periasamy)
 Primary-site:	www.bungeeproject.org
-		31k bungee-@VERSION@.tar.gz
-		500  bungee.lsm
-Alternate-site: 
-Original-site:  
-Platforms:      
+		bungee-@VERSION@.tar.gz
+Alternate-site:
+Original-site:
+Platforms: Built with GNU C compiler, embedded Python, readline, msgpack and AMQP
 Copying-policy:	Apache License v2.0
 End
