@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_PREREQ([2.67])
 dnl Every other copy of the package version number gets its value from here
-AC_INIT([Bungee], 0.1.0proto0, bungee-dev@bungeeproject.org, , http://www.bungeeproject.org)
+AC_INIT([Bungee], 0.1.proto0, bungee-dev@bungeeproject.org, , http://www.bungeeproject.org)
 AC_CONFIG_SRCDIR([shell/src/bungee.c])
 AM_INIT_AUTOMAKE([gnu dist-bzip2 silent-rules])
 AM_SILENT_RULES
@@ -30,7 +30,7 @@ AC_PROG_CC
 # Turn off shared libraries during beta-testing, since they
 # make the build process take too long. For release builds, remove
 # disable-shared option or comment LT_INIT line and uncomment
-# AC_PROG_LIBTOOL. 
+# AC_PROG_LIBTOOL.
 # LT_INIT([disable-shared])
 AC_PROG_LIBTOOL
 

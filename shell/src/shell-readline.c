@@ -1,4 +1,4 @@
-/* 
+/*
 shell-readline.c: readline interface to shell
 
 This file is part of Bungee.
@@ -22,33 +22,53 @@ limitations under the License.
 #include <stdlib.h>
 #include <readline/readline.h>
 #include <readline/history.h>
+#include <glib.h>
 
 #include "bungee.h"
 
-/* A static variable for holding the line. */
-static char *line_read = (char *)NULL;
-
 /* Read a string, and return a pointer to it.
    Returns NULL on EOF. */
-char *
-rl_gets (const char *prompt)
+gchar *
+rl_gets (const gchar *prompt)
 {
-  /* If the buffer has already been allocated,
-     return the memory to the free pool. */
-  if (line_read)
-    {
-      free (line_read);
-      line_read = (char *)NULL;
-    }
-  
+  gchar *line_read = NULL;
+
   /* Get a line from the user. */
   line_read = readline (prompt);
-  
+
   /* If the line has any text in it,
      save it on the history. */
   if (line_read && *line_read)
     add_history (line_read);
-  
+
   return (line_read);
 }
 
+static gchar *
+auto_complete (const gchar *text, gint state)
+{
+  const gchar *command_completion_regex [] = {
+    "^ *$",
+    "^ */[^ ]*$",
+    "^ */help +[^ ]*$",
+    "^ *help +[^ ]*$",
+    "^ */history +[^ ]*$",
+    NULL
+  };
+
+  const gchar *file_completion_regex [] = {
+    "^ */load +[^ ]*$",
+    //    "^ */checkpoint +[^ ]+ +[^ ]*$",
+    NULL
+  };
+}
+
+gchar **rl_auto_complete (const gchar *text, gint start, int end)
+{
+  gchar **matches  = (char **)NULL;
+
+  matches = rl_completion_matches (text, auto_complete);
+
+  return matches;
+
+}
