@@ -1,4 +1,4 @@
-/* 
+/*
 bungee.c: Shell interface to bungee framework.
 
 This file is part of Bungee.
@@ -70,17 +70,20 @@ static GOptionEntry entries[] = {
 };
 
 /* Show the version number and copyright information.  */
-static gboolean show_version (const gchar *option_name, 
-			      const gchar *value, 
+static gboolean show_version (const gchar *option_name,
+			      const gchar *value,
 			      gpointer data, GError **error)
 {
   /* Print in small parts whose localizations can hopefully be copied
      from other programs.  */
-  puts(PACKAGE" "VERSION"\n");
-  printf( _("Written by %s.\n"), "Anand Babu (AB) Periasamy");
-  printf( _("URL: %s\n\n"), PACKAGE_URL);
-  printf( _("Copyright (C) %s %s\n"), "2012", "Red Hat, Inc.");
-  puts( _("This program is free software; you may redistribute it under the terms of the Apache License v2.0. This program has absolutely no warranty.\n"));
+  g_print (PACKAGE" "VERSION"\n");
+  g_print ( _("Copyright (C) %s %s\n"), "2012", "Red Hat, Inc.");
+  g_print ( _("License: Apache License, Version 2.0\n"
+	      "This is free software: you are free to change and redistribute it. "
+	      "There is NO WARRANTY, to the extent permitted by law.\n\n"));
+  g_print ( _("Written by %s.\n"), "Anand Babu (AB) Periasamy");
+  g_print ( _("URL: %s\n"), PACKAGE_URL);
+
   exit (0);
 }
 
@@ -92,7 +95,7 @@ main (int argc, char **argv)
 
   textdomain(PACKAGE);
 
-  /* Glib based option parsing */ 
+  /* Glib based option parsing */
   context = g_option_context_new (NULL);
 
   g_option_context_set_summary (context, N_("Bungee is a distributed \"awk\" like framework for analyzing big unstructured data."));
@@ -101,20 +104,14 @@ main (int argc, char **argv)
 
   if (!g_option_context_parse (context, &argc, &argv, &error)) {
     g_print ("option parsing failed: %s\n", error->message);
-    g_option_context_free(context); 
+    g_option_context_free(context);
     exit (1);
   }
 
-  g_option_context_free(context); 
+  g_option_context_free(context);
 
-
-  /* Main interactive shell */ 
-  do {
-    puts (argv[0]);
-    bng_shell ();
-  } while (1);
-
+  /* Main interactive shell */
+  bng_shell ();
 
   exit (0);
 }
-
