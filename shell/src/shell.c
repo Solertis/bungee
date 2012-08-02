@@ -36,13 +36,16 @@ signal_caught (int signal)
 {
   tcsetattr(0, TCSANOW, &old_termios);
   putchar ('\n');
+  bng_fini ();
   exit (0);
 }
 
-int
+gint
 bng_shell (void)
 {
   gchar *cmd = NULL;
+
+  bng_init ();
 
   /* Install signal handler */
   setvbuf (stdout, NULL, _IONBF, 0);
@@ -73,6 +76,8 @@ bng_shell (void)
 
   /* Uninstall signal handler */
   tcsetattr(0, TCSANOW, &old_termios);
+
+  bng_fini ();
 
   return (0);
 

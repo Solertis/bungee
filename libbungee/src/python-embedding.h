@@ -1,5 +1,5 @@
 /*
-python-core.h: main bungee header file
+python-embedding.h: Use python as extension language.
 
 This file is part of Bungee.
 
@@ -18,13 +18,20 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+#ifndef _PYTHON_EMBEDDING_H
+#define _PYTHON_EMBEDDING_H
 
-#ifndef _PYTHON_CORE_H
-#define _PYTHON_CORE_H
-
-#ifndef _CONFIG_H
-#define _CONFIG_H
-#include "config.h"
+#ifdef __cplusplus
+extern "C" {
 #endif
 
-#endif /* _PYTHON_CORE_H */
+
+
+
+
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* _PYTHON_EMBEDDING_H */

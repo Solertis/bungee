@@ -1,5 +1,5 @@
 /*
-python-extension.c: wrapper interface to python embedding
+python-embedding.c: Use python as extension language.
 
 This file is part of Bungee.
 
@@ -18,21 +18,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#include <Python.h>
-#include "python-extension.h"
+#ifndef _CONFIG_H
+#define _CONFIG_H
+#include "config.h"
+#endif
 
-int
-extension_init (void)
-{
-  Py_Initialize();
-
-  return 0;
-}
-
-int
-extension_fini (void)
-{
-  Py_Finalize();
-
-  return 0;
-}
+#include "python-embedding.h"

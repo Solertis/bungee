@@ -1,4 +1,4 @@
-/* 
+/*
 shell.h: shell interface
 
 This file is part of Bungee.
