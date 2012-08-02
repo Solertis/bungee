@@ -22,6 +22,7 @@ limitations under the License.
 #include <sys/types.h>
 #include <stdlib.h>
 #include <glib.h>
+#include <bungee.h>
 
 #include "system.h"
 #include "shell.h"
@@ -40,7 +41,8 @@ const char *program_bug_address = PACKAGE_BUGREPORT;
 static gboolean show_version (const gchar *option_name, const gchar *value, gpointer data, GError **error);
 
 /* Option flags and variables.  These are initialized in parse_opt.  */
-static gchar *oname;			/* --output=FILE */
+static gchar *oname = NULL;			/* --output=FILE */
+static gchar *ostartup = NULL;			/* --startup=FILE */
 FILE *ofile;
 static gchar *desired_directory = NULL;	/* --directory=DIR */
 static gboolean want_interactive = FALSE;	/* --interactive */
@@ -49,11 +51,13 @@ static gboolean want_verbose = FALSE;		/* --verbose */
 static gboolean want_dry_run = FALSE;		/* --dry-run */
 static gboolean want_no_warn = FALSE;		/* --no-warn */
 
-static GOptionEntry entries[] = {
+static GOptionEntry opt_entries[] = {
   { "version", 'v', G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, show_version,
     N_("Print version information"), NULL },
   { "interactive", 'i', 0, G_OPTION_ARG_NONE, &want_interactive,
     N_("Prompt for confirmation"), NULL },
+  { "startup", 0, 0, G_OPTION_ARG_FILENAME, &ostartup,
+    N_("Use this startup FILE instead"), "FILE"},
   { "output", 'o', 0, G_OPTION_ARG_FILENAME, &oname,
     N_("Send output to FILE instead of standard output"), "FILE"},
   { "quiet", 'q', 0, G_OPTION_ARG_NONE, &want_quiet,
@@ -100,7 +104,7 @@ main (int argc, char **argv)
 
   g_option_context_set_summary (context, N_("Bungee is a distributed \"awk\" like framework for analyzing big unstructured data."));
   g_option_context_set_description (context, N_("For more information, please visit http://www.bungeeproject.org/"));
-  g_option_context_add_main_entries (context, entries, PACKAGE);
+  g_option_context_add_main_entries (context, opt_entries, PACKAGE);
 
   if (!g_option_context_parse (context, &argc, &argv, &error)) {
     g_print ("option parsing failed: %s\n", error->message);
@@ -109,6 +113,10 @@ main (int argc, char **argv)
   }
 
   g_option_context_free(context);
+
+  /* Set a different bungee startup file */
+  if (ostartup != NULL)
+    bng_set_rc (ostartup);
 
   /* Main interactive shell */
   bng_shell ();

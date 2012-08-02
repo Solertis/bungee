@@ -1,15 +1,15 @@
 lib_LTLIBRARIES = libbungee.la
 
-libbungee_la_LDFLAGS = 
-# libbungee_la_CFLAGS = -fPIC  -Wall -g -shared -nostartfiles 
-libbungee_la_CFLAGS = 
-libbungee_la_CPPFLAGS = -D_FILE_OFFSET_BITS=64 -D__USE_FILE_OFFSET64 
-libbungee_la_LIBADD = 
+libbungee_la_LDFLAGS =
+# libbungee_la_CFLAGS = -fPIC  -Wall -g -shared -nostartfiles
+libbungee_la_CFLAGS = $(GLIB2_CFLAGS) $(PYTHON3_CFLAGS)
+libbungee_la_CPPFLAGS = -D_FILE_OFFSET_BITS=64 -D__USE_FILE_OFFSET64 -DG_LOG_DOMAIN=\"bungee\"
+libbungee_la_LIBADD = $(GLIB2_LIBS) $(PYTHON3_LIBS)
 
-libbungee_la_SOURCES = execute.c
+libbungee_la_SOURCES = bungee.c python-embedding.c logger.c
 # public header file that needs to be installed
-include_HEADERS = bungee.h
+include_HEADERS =
 # local header files necessary to build this library
-noinst_HEADERS = 
+noinst_HEADERS = bungee.h python-embedding.h logger.h
 
-CLEANFILES =
+CLEANFILES = *~

@@ -1,5 +1,5 @@
 /*
-shell.h: shell interface
+logger.c: bungee logging framework
 
 This file is part of Bungee.
 
@@ -18,10 +18,4 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#ifndef __SHELL_H__
-#define __SHELL_H__
-
-int
-bng_shell (void);
-
-#endif /* __SHELL_H__ */
+#include "logger.h"

@@ -1,5 +1,5 @@
 /*
-shell.h: shell interface
+python-embedding.c: Use python as extension language.
 
 This file is part of Bungee.
 
@@ -18,10 +18,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#ifndef __SHELL_H__
-#define __SHELL_H__
+#ifndef _CONFIG_H
+#define _CONFIG_H
+#include "config.h"
+#endif
 
-int
-bng_shell (void);
-
-#endif /* __SHELL_H__ */
+#include "python-embedding.h"

@@ -1,4 +1,4 @@
-/* 
+/*
 bungee.h: main bungee header file
 
 This file is part of Bungee.
@@ -22,15 +22,35 @@ limitations under the License.
 #ifndef _BUNGEE_H
 #define _BUNGEE_H
 
-#ifndef _CONFIG_H
-#define _CONFIG_H
-#include "config.h"
+#ifdef __cplusplus
+extern "C" {
 #endif
 
 #include <stdio.h>
 #include <stdint.h>
 #include <inttypes.h>
+#include <glib.h>
 
-#define BNG_PROMPT "BNG> "
+#include "python-embedding.h"
+#include "logger.h"
+
+#ifndef _CONFIG_H
+#define _CONFIG_H
+#include "config.h"
+#endif
+
+#define BNG_PROMPT "=> "
+#define BNG_RC ".bungeerc"
+
+gint bng_init (void);
+gint bng_set_rc (gchar *path);
+gint bng_load_rc (void);
+gint bng_load (gchar *path);
+gint bng_fini (void);
+gchar *bng_home_dir (void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _BUNGEE_H */
