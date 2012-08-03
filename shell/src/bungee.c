@@ -24,17 +24,8 @@ limitations under the License.
 #include <glib.h>
 #include <bungee.h>
 
-#include "system.h"
+#include "local-defs.h"
 #include "shell.h"
-
-#if ENABLE_NLS
-# include <libintl.h>
-# define _(Text) gettext (Text)
-#else
-# define textdomain(Domain)
-# define _(Text) Text
-#endif
-#define N_(Text) Text
 
 const char *program_bug_address = PACKAGE_BUGREPORT;
 
@@ -81,12 +72,12 @@ static gboolean show_version (const gchar *option_name,
   /* Print in small parts whose localizations can hopefully be copied
      from other programs.  */
   g_print (PACKAGE" "VERSION"\n");
-  g_print ( _("Copyright (C) %s %s\n"), "2012", "Red Hat, Inc.");
-  g_print ( _("License: Apache License, Version 2.0\n"
-	      "This is free software: you are free to change and redistribute it. "
-	      "There is NO WARRANTY, to the extent permitted by law.\n\n"));
-  g_print ( _("Written by %s.\n"), "Anand Babu (AB) Periasamy");
-  g_print ( _("URL: %s\n"), PACKAGE_URL);
+  g_print (_("Copyright (C) %s %s\n"), "2012", "Red Hat, Inc.");
+  g_print (_("License: Apache License, Version 2.0\n"
+	     "This is free software: you are free to change and redistribute it. "
+	     "There is NO WARRANTY, to the extent permitted by law.\n\n"));
+  g_print (_("Written by %s.\n"), "Anand Babu (AB) Periasamy");
+  g_print (_("URL: %s\n"), PACKAGE_URL);
 
   exit (0);
 }
@@ -107,7 +98,7 @@ main (int argc, char **argv)
   g_option_context_add_main_entries (context, opt_entries, PACKAGE);
 
   if (!g_option_context_parse (context, &argc, &argv, &error)) {
-    g_print ("option parsing failed: %s\n", error->message);
+    g_print (_("option parsing failed: %s\n"), error->message);
     g_option_context_free(context);
     exit (1);
   }

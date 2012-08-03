@@ -34,20 +34,16 @@ extern "C" {
 #include "python-embedding.h"
 #include "logger.h"
 
-#ifndef _CONFIG_H
-#define _CONFIG_H
-#include "config.h"
-#endif
-
 #define BNG_PROMPT "=> "
 #define BNG_RC ".bungeerc"
 
 gint bng_init (void);
-gint bng_set_rc (gchar *path);
-gint bng_load_rc (void);
-gint bng_load (gchar *path);
 gint bng_fini (void);
-gchar *bng_home_dir (void);
+gint bng_set_rc (const gchar *path);
+gint bng_load_rc (void);
+
+gint bng_eval (const gchar *code);
+gint bng_load (const gchar *path);
 
 #ifdef __cplusplus
 }

@@ -18,9 +18,37 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#ifndef _CONFIG_H
-#define _CONFIG_H
-#include "config.h"
-#endif
+/* Python.h should be the first header to include, even before system headers */
+#include <Python.h>
+#include <glib.h>
 
+#include "local-defs.h"
 #include "python-embedding.h"
+
+static PyObject*
+emb_bng_version (PyObject *self, PyObject *args)
+{
+  if(!PyArg_ParseTuple(args, ":version"))
+    {
+      BNG_WARNING (_("Error calling bng_version"));
+      return NULL;
+    }
+  return PyUnicode_FromString (VERSION);
+}
+
+static PyMethodDef EmbMethods[] = {
+  {"bng_version", emb_bng_version, METH_VARARGS,
+   N_("Get "PACKAGE" version string.")},
+  {NULL, NULL, 0, NULL}
+};
+
+static PyModuleDef EmbModule = {
+  PyModuleDef_HEAD_INIT, "bungee", NULL, -1, EmbMethods,
+  NULL, NULL, NULL, NULL
+};
+
+static PyObject*
+PyInit_emb(void)
+{
+  return PyModule_Create(&EmbModule);
+}

@@ -21,13 +21,16 @@ limitations under the License.
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <string.h>
 #include <termios.h>
 #include <signal.h>
 #include <bungee.h>
 #include <glib.h>
 #include <readline/readline.h>
+#include <readline/history.h>
 
 #include "shell-readline.h"
+#include "shell-commands.h"
 
 struct termios old_termios, new_termios;
 
@@ -43,7 +46,7 @@ signal_caught (int signal)
 gint
 bng_shell (void)
 {
-  gchar *cmd = NULL;
+  gchar *cmd_line = NULL;
 
   bng_init ();
 
@@ -59,19 +62,20 @@ bng_shell (void)
   do
     {
       //      cmd = (gchar *) rl_gets (BNG_PROMPT);
-      cmd = (gchar *) readline (BNG_PROMPT);
-      cmd = g_strstrip (cmd);
+      cmd_line = (gchar *) readline (BNG_PROMPT);
+      cmd_line = g_strstrip (cmd_line);
 
-      if (!cmd || strlen (cmd) == 0)
+      if (!cmd_line || strlen (cmd_line) == 0)
 	continue;
 
-      if (g_strcmp0 (cmd, "quit") == 0)
+      if (shell_interpreter (cmd_line) != 0)
 	{
-	  g_free (cmd);
+	  g_free (cmd_line);
 	  break;
 	}
 
-      g_free (cmd);
+      add_history (cmd_line);
+      g_free (cmd_line);
     } while (1);
 
   /* Uninstall signal handler */

@@ -21,7 +21,7 @@ limitations under the License.
 #ifndef __SHELL_H__
 #define __SHELL_H__
 
-int
+gint
 bng_shell (void);
 
 #endif /* __SHELL_H__ */

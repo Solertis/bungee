@@ -26,19 +26,29 @@ limitations under the License.
 #include <errno.h>
 #include <wordexp.h>
 
+#include "local-defs.h"
 #include "bungee.h"
 
-static gchar *bng_rc = NULL;
+static const gchar *bng_rc = NULL;
+
+/**************************/
+/* Evaluate bungee script */
+/**************************/
+gint
+bng_eval (const gchar *code)
+{
+  return (PyRun_SimpleString (code));
+}
 
 /*************************/
 /* Load bungee extension */
 /*************************/
 gint
-bng_load (gchar *path)
+bng_load (const gchar *path)
 {
   struct stat stat_buf;
   wordexp_t exp_path;
-  gchar *_path = NULL;
+  const gchar *_path = NULL;
   gint status = 0;
 
   if (wordexp(path, &exp_path, 0) == 0)
@@ -61,7 +71,7 @@ bng_load (gchar *path)
   FILE* pyscript = fopen (_path, "r");
   if (pyscript == NULL)
     {
-      BNG_WARNING ("Unable to read [%s], %s", _path, strerror (errno));
+      BNG_WARNING (_("Unable to read [%s], %s"), _path, strerror (errno));
       status = 1;
       goto END;
     }
@@ -77,7 +87,7 @@ bng_load (gchar *path)
 /* Set a different bungee startup file */
 /***************************************/
 gint
-bng_set_rc (gchar *path)
+bng_set_rc (const gchar *path)
 {
   bng_rc = path;
 }
@@ -94,7 +104,7 @@ bng_load_rc (void)
     {
       if (bng_load (bng_rc) != 0)
 	{
-	  BNG_WARNING ("Error loading startup file [%s]", bng_rc);
+	  BNG_WARNING (_("Error loading startup file [%s]"), bng_rc);
 	  return (1);
 	}
     }
@@ -103,13 +113,13 @@ bng_load_rc (void)
       bng_rc_path = g_build_filename (g_get_home_dir(), BNG_RC , NULL);
       if (bng_rc_path == NULL)
 	{
-	  BNG_WARNING ("Unable to expand ["BNG_RC"] startup path");
+	  BNG_WARNING (_("Unable to expand ["BNG_RC"] startup path"));
 	  return 1;
 	}
 
       if (bng_load (bng_rc_path) != 0)
 	{
-	  BNG_WARNING ("Error loading startup file [%s]", bng_rc_path);
+	  BNG_WARNING (_("Error loading startup file [%s]"), bng_rc_path);
 	  g_free (bng_rc_path);
 	  return (1);
 	}
@@ -126,7 +136,7 @@ bng_init (void)
 {
   if (PY_MAJOR_VERSION < 3)
     {
-      BNG_ERROR ("Requires Python version 3 or above");
+      BNG_ERROR (_("Requires Python version 3 or above"));
       return 1;
     }
 
