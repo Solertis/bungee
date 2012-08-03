@@ -37,11 +37,9 @@ extern "C" {
 #define BNG_PROMPT "=> "
 #define BNG_RC ".bungeerc"
 
-gint bng_init (void);
+/* bng_rc can be NULL or /path/to/.bngrc */
+gint bng_init (const gchar *bng_rc);
 gint bng_fini (void);
-gint bng_set_rc (const gchar *path);
-gint bng_load_rc (void);
-
 gint bng_eval (const gchar *code);
 gint bng_load (const gchar *path);
 

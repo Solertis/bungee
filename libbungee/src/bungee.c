@@ -29,8 +29,6 @@ limitations under the License.
 #include "local-defs.h"
 #include "bungee.h"
 
-static const gchar *bng_rc = NULL;
-
 /**************************/
 /* Evaluate bungee script */
 /**************************/
@@ -44,19 +42,19 @@ bng_eval (const gchar *code)
 /* Load bungee extension */
 /*************************/
 gint
-bng_load (const gchar *path)
+bng_load (const gchar *bng_script)
 {
   struct stat stat_buf;
-  wordexp_t exp_path;
-  const gchar *_path = NULL;
+  wordexp_t exp_bng_script;
+  const gchar *_bng_script = NULL;
   gint status = 0;
 
-  if (wordexp(path, &exp_path, 0) == 0)
-    _path = exp_path.we_wordv[0];
+  if (wordexp(bng_script, &exp_bng_script, 0) == 0)
+    _bng_script = exp_bng_script.we_wordv[0];
   else
-    _path = path;
+    _bng_script = bng_script;
 
-  if (stat (_path, &stat_buf) !=0)
+  if (stat (_bng_script, &stat_buf) !=0)
     {
       status = 1; /* File likely doesn't exist */
       goto END;
@@ -68,38 +66,29 @@ bng_load (const gchar *path)
       goto END;
     }
 
-  FILE* pyscript = fopen (_path, "r");
+  FILE* pyscript = fopen (_bng_script, "r");
   if (pyscript == NULL)
     {
-      BNG_WARNING (_("Unable to read [%s], %s"), _path, strerror (errno));
+      BNG_WARNING (_("Unable to read [%s], %s"), _bng_script, strerror (errno));
       status = 1;
       goto END;
     }
 
-  status = PyRun_SimpleFileEx (pyscript, _path, TRUE);
+  status = PyRun_SimpleFileEx (pyscript, _bng_script, TRUE);
 
  END:
-  wordfree (&exp_path);
+  wordfree (&exp_bng_script);
   return (status);
 }
 
-/***************************************/
-/* Set a different bungee startup file */
-/***************************************/
-gint
-bng_set_rc (const gchar *path)
-{
-  bng_rc = path;
-}
 
-/*******************************/
-/* Execute bungee startup file */
-/*******************************/
-gint
-bng_load_rc (void)
+/***************************************/
+/* Execute bungee startup file	       */
+/* if bng_rc is NULL, load ~/.bungeerc */
+/***************************************/
+static gint
+bng_load_rc (const gchar *bng_rc)
 {
-  gchar *bng_rc_path = NULL;
-
   if (bng_rc)
     {
       if (bng_load (bng_rc) != 0)
@@ -110,29 +99,19 @@ bng_load_rc (void)
     }
   else
     {
-      bng_rc_path = g_build_filename (g_get_home_dir(), BNG_RC , NULL);
-      if (bng_rc_path == NULL)
+      if (bng_load ("~/"BNG_RC) != 0)
 	{
-	  BNG_WARNING (_("Unable to expand ["BNG_RC"] startup path"));
-	  return 1;
-	}
-
-      if (bng_load (bng_rc_path) != 0)
-	{
-	  BNG_WARNING (_("Error loading startup file [%s]"), bng_rc_path);
-	  g_free (bng_rc_path);
+	  BNG_WARNING (_("Error loading startup file [~/"BNG_RC"]"));
 	  return (1);
 	}
-      g_free (bng_rc_path);
-    }
-  return (0);
+    }  return (0);
 }
 
 /*********************************/
 /* Initialize bungee environment */
 /*********************************/
 gint
-bng_init (void)
+bng_init (const gchar *bng_script)
 {
   if (PY_MAJOR_VERSION < 3)
     {
@@ -142,7 +121,7 @@ bng_init (void)
 
   Py_Initialize();
 
-  bng_load_rc ();
+  bng_load_rc (bng_script);
 
   return (0);
 }

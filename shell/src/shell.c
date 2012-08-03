@@ -48,8 +48,6 @@ bng_shell (void)
 {
   gchar *cmd_line = NULL;
 
-  bng_init ();
-
   /* Install signal handler */
   setvbuf (stdout, NULL, _IONBF, 0);
   signal (SIGINT, signal_caught);
