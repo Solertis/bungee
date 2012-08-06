@@ -24,17 +24,8 @@ limitations under the License.
 #include <glib.h>
 #include <bungee.h>
 
-#include "system.h"
+#include "local-defs.h"
 #include "shell.h"
-
-#if ENABLE_NLS
-# include <libintl.h>
-# define _(Text) gettext (Text)
-#else
-# define textdomain(Domain)
-# define _(Text) Text
-#endif
-#define N_(Text) Text
 
 const char *program_bug_address = PACKAGE_BUGREPORT;
 
@@ -42,21 +33,20 @@ static gboolean show_version (const gchar *option_name, const gchar *value, gpoi
 
 /* Option flags and variables.  These are initialized in parse_opt.  */
 static gchar *oname = NULL;			/* --output=FILE */
-static gchar *ostartup = NULL;			/* --startup=FILE */
+static gchar *startup_script = NULL;			/* --startup=FILE */
 FILE *ofile;
 static gchar *desired_directory = NULL;	/* --directory=DIR */
-static gboolean want_interactive = FALSE;	/* --interactive */
+static gchar *bng_script = NULL;	/* --file=FILE */
 static gboolean want_quiet = FALSE;		/* --quiet, --silent */
 static gboolean want_verbose = FALSE;		/* --verbose */
-static gboolean want_dry_run = FALSE;		/* --dry-run */
 static gboolean want_no_warn = FALSE;		/* --no-warn */
 
 static GOptionEntry opt_entries[] = {
   { "version", 'v', G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, show_version,
     N_("Print version information"), NULL },
-  { "interactive", 'i', 0, G_OPTION_ARG_NONE, &want_interactive,
-    N_("Prompt for confirmation"), NULL },
-  { "startup", 0, 0, G_OPTION_ARG_FILENAME, &ostartup,
+  { "file", 'f', 0, G_OPTION_ARG_FILENAME, &bng_script,
+    N_("Execute "PACKAGE" script"), "FILE"},
+  { "startup", 0, 0, G_OPTION_ARG_FILENAME, &startup_script,
     N_("Use this startup FILE instead"), "FILE"},
   { "output", 'o', 0, G_OPTION_ARG_FILENAME, &oname,
     N_("Send output to FILE instead of standard output"), "FILE"},
@@ -64,8 +54,6 @@ static GOptionEntry opt_entries[] = {
     N_("Inhibit usual output"), NULL },
   { "verbose", 0, 0, G_OPTION_ARG_NONE, &want_verbose,
     N_("Print more information"), NULL },
-  { "dry-run", 0, 0, G_OPTION_ARG_NONE, &want_dry_run,
-    N_("Take no real actions"), NULL },
   { "no-warn", 0, 0, G_OPTION_ARG_NONE, &want_no_warn,
     N_("Disable warnings"), NULL },
   { "directory", 0, 0, G_OPTION_ARG_STRING, &desired_directory,
@@ -81,12 +69,12 @@ static gboolean show_version (const gchar *option_name,
   /* Print in small parts whose localizations can hopefully be copied
      from other programs.  */
   g_print (PACKAGE" "VERSION"\n");
-  g_print ( _("Copyright (C) %s %s\n"), "2012", "Red Hat, Inc.");
-  g_print ( _("License: Apache License, Version 2.0\n"
-	      "This is free software: you are free to change and redistribute it. "
-	      "There is NO WARRANTY, to the extent permitted by law.\n\n"));
-  g_print ( _("Written by %s.\n"), "Anand Babu (AB) Periasamy");
-  g_print ( _("URL: %s\n"), PACKAGE_URL);
+  g_print (_("Copyright (C) %s %s\n"), "2012", "Red Hat, Inc.");
+  g_print (_("License: Apache License, Version 2.0\n"
+	     "This is free software: you are free to change and redistribute it. "
+	     "There is NO WARRANTY, to the extent permitted by law.\n\n"));
+  g_print (_("Written by %s.\n"), "Anand Babu (AB) Periasamy");
+  g_print (_("URL: %s\n"), PACKAGE_URL);
 
   exit (0);
 }
@@ -107,19 +95,27 @@ main (int argc, char **argv)
   g_option_context_add_main_entries (context, opt_entries, PACKAGE);
 
   if (!g_option_context_parse (context, &argc, &argv, &error)) {
-    g_print ("option parsing failed: %s\n", error->message);
+    g_print (_("option parsing failed: %s\n"), error->message);
     g_option_context_free(context);
     exit (1);
   }
 
   g_option_context_free(context);
 
-  /* Set a different bungee startup file */
-  if (ostartup != NULL)
-    bng_set_rc (ostartup);
+  /* Initialize Bungee environment */
+  bng_init (startup_script);
 
-  /* Main interactive shell */
-  bng_shell ();
+  if (bng_script != NULL)
+    {
+      if (bng_load (bng_script))
+	{
+	  BNG_WARNING (_("Error loading "PACKAGE" script [%s]"), bng_script);
+	  return (1);
+	}
+    }
+  else
+    bng_shell (); /* Main interactive shell */
 
+  bng_fini ();
   exit (0);
 }

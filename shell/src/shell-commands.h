@@ -1,5 +1,5 @@
 /*
-logger.c: bungee logging framework
+shell-commands.h: shell commands
 
 This file is part of Bungee.
 
@@ -18,5 +18,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#include "local-defs.h"
-#include "logger.h"
+#ifndef __SHELL_COMMANDS_H__
+#define __SHELL_COMMANDS_H__
+
+gint shell_interpreter (const gchar *cmd_line);
+
+
+#endif /* __SHELL_H__ */

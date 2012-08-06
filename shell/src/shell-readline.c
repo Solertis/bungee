@@ -44,6 +44,7 @@ rl_gets (const gchar *prompt)
   return (line_read);
 }
 
+
 static gchar *
 auto_complete (const gchar *text, gint state)
 {
@@ -53,15 +54,16 @@ auto_complete (const gchar *text, gint state)
     "^ */help +[^ ]*$",
     "^ *help +[^ ]*$",
     "^ */history +[^ ]*$",
+    "^ */eval +[^ ]*$",
     NULL
   };
 
   const gchar *file_completion_regex [] = {
     "^ */load +[^ ]*$",
-    //    "^ */checkpoint +[^ ]+ +[^ ]*$",
     NULL
   };
 }
+
 
 gchar **rl_auto_complete (const gchar *text, gint start, int end)
 {

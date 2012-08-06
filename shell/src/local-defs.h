@@ -1,5 +1,5 @@
 /*
-bungee.h: main bungee header file
+local-defs.c: non-public common definitions
 
 This file is part of Bungee.
 
@@ -18,33 +18,40 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-
-#ifndef _BUNGEE_H
-#define _BUNGEE_H
+#ifndef _LOCAL_DEFS_H
+#define _LOCAL_DEFSH
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include <stdio.h>
-#include <stdint.h>
-#include <inttypes.h>
-#include <glib.h>
+#ifndef _CONFIG_H
+#define _CONFIG_H
+#include "config.h"
+#endif
 
-#include "python-embedding.h"
-#include "logger.h"
+/* NLS Macros */
+#if HAVE_LOCALE_H
+# include <locale.h>
+#endif
+#if !HAVE_SETLOCALE
+# define setlocale(Category, Locale) /* empty */
+#endif
 
-#define BNG_PROMPT "=> "
-#define BNG_RC ".bungeerc"
-
-/* bng_rc can be NULL or /path/to/.bngrc */
-gint bng_init (const gchar *bng_rc);
-gint bng_fini (void);
-gint bng_eval (const gchar *code);
-gint bng_load (const gchar *path);
+#if ENABLE_NLS
+# include <libintl.h>
+# define _(Text) gettext (Text)
+#else
+# undef bindtextdomain
+# define bindtextdomain(Domain, Directory) /* empty */
+# undef textdomain
+# define textdomain(Domain) /* empty */
+# define _(Text) Text
+#endif
+#define N_(Text) Text
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* _BUNGEE_H */
+#endif /* _LOCAL_DEFS_H */
