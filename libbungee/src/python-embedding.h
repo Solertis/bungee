@@ -25,9 +25,13 @@ limitations under the License.
 extern "C" {
 #endif
 
+#define BNG_HOOK_BEGIN  "BEGIN"
+#define BNG_HOOK_END    "END"
+#define BNG_HOOK_INPUT  "INPUT"
+#define BNG_HOOK_OUTPUT "OUTPUT"
+
 gint bng_py_init (void);
-gint bng_py_hook_BEGIN (void);
-gint bng_py_hook_END (void);
+gint bng_py_hook (const gchar *hook_name);
 
 #ifdef __cplusplus
 }

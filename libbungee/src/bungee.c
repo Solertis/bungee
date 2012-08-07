@@ -129,14 +129,14 @@ gint
 bng_engine (void)
 {
   /* BEGIN hook is optional */
-  bng_py_hook_BEGIN ();
+  bng_py_hook(BNG_HOOK_BEGIN);
 
   /*
     Heart of Bungee!. As data flows from INPUT hook, call MATCH and TARGET appropriately.
    */
 
   /* END hook is optional */
-  bng_py_hook_END ();
+  bng_py_hook(BNG_HOOK_END);
 
   return (0);
 }

@@ -115,23 +115,23 @@ bng_py_init (void)
 }
 
 gint
-bng_py_hook_BEGIN (void)
+bng_py_hook (const gchar *hook_name)
 {
   if (bng_py_modules.main == NULL)
     {
-      BNG_WARNING (_(PACKAGE" main is NULL"));
+      BNG_WARNING (_(PACKAGE" main module has been initialized yet"));
       return (1);
     }
 
-  if (!PyObject_HasAttrString (bng_py_modules.main, "BEGIN"))
+  if (!PyObject_HasAttrString (bng_py_modules.main, hook_name))
     {
-      BNG_DEBUG (_(PACKAGE" BEGIN hook is missing"));
+      BNG_DEBUG (_(PACKAGE" [%s] hook is missing"), hook_name);
       return (1);
     }
 
   PyObject *py_hook=NULL, *py_result=NULL;
 
-  py_hook = PyObject_GetAttrString (bng_py_modules.main, "BEGIN");
+  py_hook = PyObject_GetAttrString (bng_py_modules.main, hook_name);
   if (py_hook && PyCallable_Check (py_hook))
     {
       py_result = PyObject_CallFunction (py_hook, NULL);
@@ -139,41 +139,7 @@ bng_py_hook_BEGIN (void)
     }
   else
     {
-      BNG_DEBUG (_("BEGIN hook is not a callable function"));
-      Py_XDECREF (py_hook);
-      return (1);
-    }
-
-  Py_XDECREF (py_hook);
-  return (0);
-}
-
-gint
-bng_py_hook_END (void)
-{
-  if (bng_py_modules.main == NULL)
-    {
-      BNG_WARNING (_(PACKAGE" main is NULL"));
-      return (1);
-    }
-
-  if (!PyObject_HasAttrString (bng_py_modules.main, "END"))
-    {
-      BNG_DEBUG (_(PACKAGE" END hook is missing"));
-      return (1);
-    }
-
-  PyObject *py_hook=NULL, *py_result=NULL;
-
-  py_hook = PyObject_GetAttrString (bng_py_modules.main, "END");
-  if (py_hook && PyCallable_Check (py_hook))
-    {
-      py_result = PyObject_CallFunction (py_hook, NULL);
-      Py_XDECREF (py_result);
-    }
-  else
-    {
-      BNG_DEBUG (_("END hook is not a callable function"));
+      BNG_DEBUG (_("[%s] hook is not a callable function"), hook_name);
       Py_XDECREF (py_hook);
       return (1);
     }
