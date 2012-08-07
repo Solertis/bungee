@@ -123,6 +123,12 @@ bng_py_hook_BEGIN (void)
       return (1);
     }
 
+  if (!PyObject_HasAttrString (bng_py_modules.main, "BEGIN"))
+    {
+      BNG_DEBUG (_(PACKAGE" BEGIN hook is missing"));
+      return (1);
+    }
+
   PyObject *py_hook=NULL, *py_result=NULL;
 
   py_hook = PyObject_GetAttrString (bng_py_modules.main, "BEGIN");
@@ -148,6 +154,12 @@ bng_py_hook_END (void)
   if (bng_py_modules.main == NULL)
     {
       BNG_WARNING (_(PACKAGE" main is NULL"));
+      return (1);
+    }
+
+  if (!PyObject_HasAttrString (bng_py_modules.main, "END"))
+    {
+      BNG_DEBUG (_(PACKAGE" END hook is missing"));
       return (1);
     }
 
