@@ -108,23 +108,9 @@ main (int argc, char **argv)
 
   /* Load BNG_RC startup script */
   if (startup_script)
-    {
-      status = bng_load (startup_script);
-      if (status != 0)
-	{
-	  BNG_WARNING (_("Error loading "PACKAGE" startup [%s]"), startup_script);
-	  goto END;
-	}
-    }
+    bng_load (startup_script);
   else
-    {
-      status = bng_load (BNG_RC);
-      if (status != 0)
-	{
-	  BNG_WARNING (_("Error loading "PACKAGE" script ["BNG_RC"]"));
-	  goto END;
-	}
-    }
+    bng_load (BNG_RC);
 
   if (bng_script != NULL)
     {
