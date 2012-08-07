@@ -25,17 +25,27 @@ limitations under the License.
 #include <pwd.h>
 #include <errno.h>
 #include <wordexp.h>
+#include <glib.h>
 
 #include "local-defs.h"
-#include "bungee.h"
+#include "logger.h"
+#include "python-embedding.h"
 
-/**************************/
-/* Evaluate bungee script */
-/**************************/
+/* Evaluate bungee code */
 gint
 bng_eval (const gchar *code)
 {
-  return (PyRun_SimpleString (code));
+  if (code == NULL)
+    {
+      BNG_WARNING (_("Invalid argument, code is NULL"));
+      errno = EINVAL;
+      return (1);
+    }
+
+  if (PyRun_SimpleString (code) == 0)
+    return (0);
+  else
+    return (1);
 }
 
 /*************************/
@@ -82,36 +92,11 @@ bng_load (const gchar *bng_script)
 }
 
 
-/***************************************/
-/* Execute bungee startup file	       */
-/* if bng_rc is NULL, load ~/.bungeerc */
-/***************************************/
-static gint
-bng_load_rc (const gchar *bng_rc)
-{
-  if (bng_rc)
-    {
-      if (bng_load (bng_rc) != 0)
-	{
-	  BNG_WARNING (_("Error loading startup file [%s]"), bng_rc);
-	  return (1);
-	}
-    }
-  else
-    {
-      if (bng_load ("~/"BNG_RC) != 0)
-	{
-	  BNG_WARNING (_("Error loading startup file [~/"BNG_RC"]"));
-	  return (1);
-	}
-    }  return (0);
-}
-
 /*********************************/
 /* Initialize bungee environment */
 /*********************************/
 gint
-bng_init (const gchar *bng_script)
+bng_init (void)
 {
   if (PY_MAJOR_VERSION < 3)
     {
@@ -119,9 +104,7 @@ bng_init (const gchar *bng_script)
       return 1;
     }
 
-  Py_Initialize();
-
-  bng_load_rc (bng_script);
+  bng_py_init ();
 
   return (0);
 }
@@ -132,7 +115,51 @@ bng_init (const gchar *bng_script)
 gint
 bng_fini (void)
 {
-  Py_Finalize();
+  bng_py_fini ();
+  Py_Finalize ();
+
+  return (0);
+}
+
+
+/*********************************/
+/* Bungee core execution loop    */
+/*********************************/
+gint
+bng_engine (void)
+{
+  /* BEGIN hook is optional */
+  bng_py_hook_BEGIN ();
+
+  /*
+    Heart of Bungee!. As data flows from INPUT hook, call MATCH and TARGET appropriately.
+   */
+
+  /* END hook is optional */
+  bng_py_hook_END ();
+
+  return (0);
+}
+
+/*********************************/
+/* Bungee core execution loop    */
+/*********************************/
+gint
+bng_run (const gchar *bng_script)
+{
+  gint status = 0;
+  status = bng_load (bng_script);
+  if (status != 0)
+  {
+    BNG_WARNING (_("Error loading "PACKAGE" script [%s]"), bng_script);
+    return (status);
+  }
+
+  if (bng_engine () != 0)
+  {
+    BNG_WARNING (_("Error executing "PACKAGE" script [%s]"), bng_script);
+    return (1);
+  }
 
   return (0);
 }

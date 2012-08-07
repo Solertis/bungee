@@ -84,6 +84,7 @@ main (int argc, char **argv)
 {
   GError *error = NULL;
   GOptionContext *context;
+  gint status = 0;
 
   textdomain(PACKAGE);
 
@@ -103,19 +104,44 @@ main (int argc, char **argv)
   g_option_context_free(context);
 
   /* Initialize Bungee environment */
-  bng_init (startup_script);
+  bng_init ();
 
-  if (bng_script != NULL)
+  /* Load BNG_RC startup script */
+  if (startup_script)
     {
-      if (bng_load (bng_script))
+      status = bng_load (startup_script);
+      if (status != 0)
 	{
-	  BNG_WARNING (_("Error loading "PACKAGE" script [%s]"), bng_script);
-	  return (1);
+	  BNG_WARNING (_("Error loading "PACKAGE" startup [%s]"), startup_script);
+	  goto END;
 	}
     }
   else
-    bng_shell (); /* Main interactive shell */
+    {
+      status = bng_load (BNG_RC);
+      if (status != 0)
+	{
+	  BNG_WARNING (_("Error loading "PACKAGE" script ["BNG_RC"]"));
+	  goto END;
+	}
+    }
 
+  if (bng_script != NULL)
+    {
+      status = bng_run (bng_script);
+      if (status != 0)
+	{
+	  BNG_WARNING (_("Error execuring [%s] "PACKAGE" script"), bng_script);
+	  goto END;
+	}
+    }
+  else
+    {
+      /* If nothing else, run the interactive shell by default */
+      status = bng_shell (); /* Main interactive shell */
+    }
+
+ END:
   bng_fini ();
-  exit (0);
+  exit (status);
 }

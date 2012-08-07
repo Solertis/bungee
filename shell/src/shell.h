@@ -21,6 +21,9 @@ limitations under the License.
 #ifndef __SHELL_H__
 #define __SHELL_H__
 
+#define BNG_PROMPT "=> "
+#define BNG_RC "~/.bungeerc"
+
 gint
 bng_shell (void);
 

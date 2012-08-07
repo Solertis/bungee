@@ -33,14 +33,15 @@ static gint
 shell_eval (const gchar *code)
 {
   gint status = bng_eval (code);
-  g_print (_("completed with status [%d]\n"), status);
+  g_print (_("status=[%d]\n"), status);
+
   return (status);
 }
 
 static gint
 shell_load (const gchar *path)
 {
-  gint status = bng_load (path);
+  gint status = bng_run (path);
   g_print (_("completed with status [%d]\n"), status);
   return (status);
 }
@@ -65,7 +66,6 @@ shell_interpreter (const gchar *cmd_line)
     {
       shell_load (args);
     }
-
 
   g_strfreev (cmd_list);
   return (0);
