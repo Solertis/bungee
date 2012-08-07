@@ -25,10 +25,9 @@ limitations under the License.
 extern "C" {
 #endif
 
-
-
-
-
+gint bng_py_init (void);
+gint bng_py_hook_BEGIN (void);
+gint bng_py_hook_END (void);
 
 #ifdef __cplusplus
 }

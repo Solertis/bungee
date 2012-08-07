@@ -29,6 +29,7 @@ limitations under the License.
 #include <readline/readline.h>
 #include <readline/history.h>
 
+#include "shell.h"
 #include "shell-readline.h"
 #include "shell-commands.h"
 
@@ -54,7 +55,7 @@ bng_shell (void)
   tcgetattr (0, &old_termios);
   new_termios             = old_termios;
   new_termios.c_cc[VEOF]  = 3; // ^C
-  new_termios.c_cc[VINTR] = 4; // ^D
+  //  new_termios.c_cc[VINTR] = 4; // ^D
   tcsetattr (0, TCSANOW, &new_termios);
 
   do
@@ -78,9 +79,5 @@ bng_shell (void)
 
   /* Uninstall signal handler */
   tcsetattr(0, TCSANOW, &old_termios);
-
-  bng_fini ();
-
   return (0);
-
 }

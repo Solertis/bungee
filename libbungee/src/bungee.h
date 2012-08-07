@@ -31,17 +31,15 @@ extern "C" {
 #include <inttypes.h>
 #include <glib.h>
 
-#include "python-embedding.h"
 #include "logger.h"
-
-#define BNG_PROMPT "=> "
-#define BNG_RC ".bungeerc"
+#include "python-embedding.h"
 
 /* bng_rc can be NULL or /path/to/.bngrc */
-gint bng_init (const gchar *bng_rc);
+gint bng_init ();
 gint bng_fini (void);
 gint bng_eval (const gchar *code);
 gint bng_load (const gchar *path);
+gint bng_run (const gchar *bng_script);
 
 #ifdef __cplusplus
 }

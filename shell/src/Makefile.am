@@ -6,8 +6,8 @@ AM_CFLAGS = -fPIC -Wall -D_FILE_OFFSET_BITS=64 \
 	-I$(top_srcdir)/libbungee/src \
 	-DDATADIR=\"$(localstatedir)\" \
 	-DCONFDIR=\"$(sysconfdir)/bungee\" \
-	$(GLIB2_CFLAGS)
+	$(GLIB2_CFLAGS) $(PYTHON3_CFLAGS)
 
-bungee_LDADD = $(top_builddir)/libbungee/src/libbungee.la $(GLIB2_LIBS)
+bungee_LDADD = $(top_builddir)/libbungee/src/libbungee.la $(GLIB2_LIBS) $(PYTHON3_LIBS)
 
 CLEANFILES = *~
