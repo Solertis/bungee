@@ -114,6 +114,7 @@ bng_py_init (void)
   return (0);
 }
 
+/*
 gint
 bng_py_hook (const gchar *hook_name)
 {
@@ -145,6 +146,54 @@ bng_py_hook (const gchar *hook_name)
     }
 
   Py_XDECREF (py_hook);
+  return (0);
+}
+*/
+
+gint
+bng_py_hook_call (const gchar *hook_name, char *format, ...)
+{
+  if (bng_py_modules.main == NULL)
+    {
+      BNG_WARNING (_(PACKAGE" main module is not initialized"));
+      return (1);
+    }
+
+  PyObject *py_hook = NULL, *py_result = NULL;
+  va_list args;
+  PyObject *main_dict = NULL;
+
+  /* Borrowed reference to main dict */
+  main_dict = PyModule_GetDict (bng_py_modules.main);
+
+  /* Borrowed reference to "hook_name" from the global dictionary */
+  py_hook = PyDict_GetItemString (main_dict, hook_name);
+
+  if (py_hook == NULL)
+    {
+      BNG_DEBUG (_("[%s] hook function is not declared"), hook_name);
+      return (1);
+    }
+
+  if (PyCallable_Check (py_hook) == 0)
+    {
+      BNG_WARNING (_("[%s] hook function is not callable"), hook_name);
+      return (1);
+    }
+
+  if (format && *format)
+    {
+      va_start (args, format);
+      py_result = PyObject_CallFunction (py_hook, format, args, NULL);
+      Py_XDECREF (py_result);
+      va_end (args);
+    }
+  else
+    {
+      py_result = PyObject_CallFunction (py_hook, NULL);
+      Py_XDECREF (py_result);
+    }
+
   return (0);
 }
 

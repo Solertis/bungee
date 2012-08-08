@@ -37,7 +37,7 @@ bng_eval (const gchar *code)
 {
   if (code == NULL)
     {
-      BNG_WARNING (_("Invalid argument, code is NULL"));
+      BNG_DEBUG (_("Invalid argument, code is NULL"));
       errno = EINVAL;
       return (1);
     }
@@ -79,7 +79,7 @@ bng_load (const gchar *bng_script)
   FILE* pyscript = fopen (_bng_script, "r");
   if (pyscript == NULL)
     {
-      BNG_WARNING (_("Unable to read [%s], %s"), _bng_script, strerror (errno));
+      BNG_DEBUG (_("Unable to read [%s], %s"), _bng_script, strerror (errno));
       status = 1;
       goto END;
     }
@@ -129,14 +129,14 @@ gint
 bng_engine (void)
 {
   /* BEGIN hook is optional */
-  bng_py_hook(BNG_HOOK_BEGIN);
+  bng_py_hook_call (BNG_HOOK_BEGIN, NULL);
 
   /*
     Heart of Bungee!. As data flows from INPUT hook, call MATCH and TARGET appropriately.
    */
 
   /* END hook is optional */
-  bng_py_hook(BNG_HOOK_END);
+  bng_py_hook_call (BNG_HOOK_END, NULL);
 
   return (0);
 }
@@ -151,13 +151,13 @@ bng_run (const gchar *bng_script)
   status = bng_load (bng_script);
   if (status != 0)
   {
-    BNG_WARNING (_("Error loading "PACKAGE" script [%s]"), bng_script);
+    BNG_DEBUG (_("Error loading "PACKAGE" script [%s]"), bng_script);
     return (status);
   }
 
   if (bng_engine () != 0)
   {
-    BNG_WARNING (_("Error executing "PACKAGE" script [%s]"), bng_script);
+    BNG_DEBUG (_("Error executing "PACKAGE" script [%s]"), bng_script);
     return (1);
   }
 
