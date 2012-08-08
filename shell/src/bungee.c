@@ -117,7 +117,7 @@ main (int argc, char **argv)
       status = bng_run (bng_script);
       if (status != 0)
 	{
-	  BNG_WARNING (_("Error executing [%s] "PACKAGE" script"), bng_script);
+	  BNG_ERROR (_("Could not execute "PACKAGE" script [%s]"), bng_script);
 	  goto END;
 	}
     }

@@ -27,6 +27,7 @@ extern "C" {
 
 /* GLib log levels that are considered fatal by default. */
 #define G_LOG_FATAL_MASK (G_LOG_FLAG_RECURSION | G_LOG_LEVEL_ERROR)
+
 /* BNG_LOG is only accessible to libbungee code. G_LOG_DOMAIN is declared in libbungee/src/Makefile.am */
 #ifdef G_LOG_DOMAIN
 #define BNG_LOG(level, format, ...) g_log (G_LOG_DOMAIN, level, "[%s:%d] "format, __FILE__, __LINE__, ##__VA_ARGS__)
