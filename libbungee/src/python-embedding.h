@@ -31,6 +31,7 @@ extern "C" {
 #define BNG_HOOK_OUTPUT "OUTPUT"
 
 gint bng_py_init (void);
+gint bng_py_fini (void);
 gint bng_py_hook_call (const gchar *hook_name, char *format, ...);
 
 #ifdef __cplusplus

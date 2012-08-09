@@ -23,9 +23,8 @@ limitations under the License.
 #include <glib.h>
 
 #include "local-defs.h"
-
-#include "python-embedding.h"
 #include "logger.h"
+#include "python-embedding.h"
 
 typedef struct {
   PyObject *main; /* __main__ module */
@@ -39,7 +38,7 @@ emb_bng_version (PyObject *self, PyObject *args)
 {
   if(!PyArg_ParseTuple(args, ":version"))
     {
-      BNG_WARNING (_("Error parsing version() tuple"));
+      BNG_WARN (_("Error parsing version() tuple"));
       return NULL;
     }
   return PyUnicode_FromString (VERSION);
@@ -89,7 +88,7 @@ bng_py_init (void)
   /* Import "bungee" module automatically. This step must be performed before PyInitialize (). */
   if (register_module_bungee () != 0)
     {
-      BNG_WARNING (_(PACKAGE" registration failed"));
+      BNG_WARN (_(PACKAGE" registration failed"));
       return (1);
     }
 
@@ -100,14 +99,14 @@ bng_py_init (void)
   bng_py_modules.main = PyImport_AddModule ("__main__");
   if (bng_py_modules.main == NULL)
     {
-      BNG_WARNING (_("Could not access __main__ module"));
+      BNG_WARN (_("Could not access __main__ module"));
       return (1);
     }
 
   /* Register our bungee primitives */
   if (bng_register_primitives () != 0)
     {
-      BNG_WARNING (_("Unable to register "PACKAGE" primitives"));
+      BNG_WARN (_("Unable to register "PACKAGE" primitives"));
       return (1);
     }
 
@@ -120,13 +119,13 @@ bng_py_hook (const gchar *hook_name)
 {
   if (bng_py_modules.main == NULL)
     {
-      BNG_WARNING (_(PACKAGE" main module has been initialized yet"));
+      BNG_WARN (_(PACKAGE" main module has been initialized yet"));
       return (1);
     }
 
   if (!PyObject_HasAttrString (bng_py_modules.main, hook_name))
     {
-      BNG_DEBUG (_(PACKAGE" [%s] hook is missing"), hook_name);
+      BNG_DBG (_(PACKAGE" [%s] hook is missing"), hook_name);
       return (1);
     }
 
@@ -140,7 +139,7 @@ bng_py_hook (const gchar *hook_name)
     }
   else
     {
-      BNG_DEBUG (_("[%s] hook is not a callable function"), hook_name);
+      BNG_DBG (_("[%s] hook is not a callable function"), hook_name);
       Py_XDECREF (py_hook);
       return (1);
     }
@@ -155,7 +154,7 @@ bng_py_hook_call (const gchar *hook_name, char *format, ...)
 {
   if (bng_py_modules.main == NULL)
     {
-      BNG_WARNING (_(PACKAGE" main module is not initialized"));
+      BNG_WARN (_(PACKAGE" main module is not initialized"));
       return (1);
     }
 
@@ -171,13 +170,13 @@ bng_py_hook_call (const gchar *hook_name, char *format, ...)
 
   if (py_hook == NULL)
     {
-      BNG_DEBUG (_("[%s] hook function is not declared"), hook_name);
+      BNG_DBG (_("[%s] hook function is not declared"), hook_name);
       return (1);
     }
 
   if (PyCallable_Check (py_hook) == 0)
     {
-      BNG_WARNING (_("[%s] hook function is not callable"), hook_name);
+      BNG_WARN (_("[%s] hook function is not callable"), hook_name);
       return (1);
     }
 

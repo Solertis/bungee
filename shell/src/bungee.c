@@ -103,8 +103,17 @@ main (int argc, char **argv)
 
   g_option_context_free(context);
 
+  /* Set default log handler to Bungee's logger. Returns id of the new handler */
+  // bng_log_set_default_handler ();
+
   /* Initialize Bungee environment */
-  bng_init ();
+  bng_console_t log, msg;
+  log.type = BNG_CONSOLE_TYPE_FD;
+  log.device.fp = stderr;
+  msg.type = BNG_CONSOLE_TYPE_FD;
+  msg.device.fp = stdout;
+
+  bng_init (msg, log);
 
   /* Load BNG_RC startup script */
   if (startup_script)
@@ -117,7 +126,7 @@ main (int argc, char **argv)
       status = bng_run (bng_script);
       if (status != 0)
 	{
-	  BNG_ERROR (_("Could not execute "PACKAGE" script [%s]"), bng_script);
+	  BNG_ERR (_("Could not execute "PACKAGE" script [%s]"), bng_script);
 	  goto END;
 	}
     }

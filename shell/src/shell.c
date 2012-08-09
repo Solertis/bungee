@@ -29,6 +29,7 @@ limitations under the License.
 #include <readline/readline.h>
 #include <readline/history.h>
 
+#include "local-defs.h"
 #include "shell.h"
 #include "shell-readline.h"
 #include "shell-commands.h"

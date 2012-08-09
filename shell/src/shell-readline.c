@@ -23,8 +23,10 @@ limitations under the License.
 #include <readline/readline.h>
 #include <readline/history.h>
 #include <glib.h>
+#include <bungee.h>
 
-#include "bungee.h"
+#include "local-defs.h"
+#include "shell-readline.h"
 
 /* Read a string, and return a pointer to it.
    Returns NULL on EOF. */

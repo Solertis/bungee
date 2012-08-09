@@ -25,22 +25,44 @@ limitations under the License.
 extern "C" {
 #endif
 
-/* GLib log levels that are considered fatal by default. */
-#define G_LOG_FATAL_MASK (G_LOG_FLAG_RECURSION | G_LOG_LEVEL_ERROR)
+/*
+typedef enum {
+  BNG_CONSOLE_LEVEL_MESSAGE  = 1 << 0,
+  BNG_CONSOLE_LEVEL_FATAL    = 1 << 1,
+  BNG_CONSOLE_LEVEL_ERROR    = 1 << 2,
+  BNG_CONSOLE_LEVEL_WARNING  = 1 << 3,
+  BNG_CONSOLE_LEVEL_INFO     = 1 << 4,
+  BNG_CONSOLE_LEVEL_DEBUG    = 1 << 5
+} bng_console_level_t;
+*/
 
-/* BNG_LOG is only accessible to libbungee code. G_LOG_DOMAIN is declared in libbungee/src/Makefile.am */
-#ifdef G_LOG_DOMAIN
-#define BNG_LOG(level, format, ...) g_log (G_LOG_DOMAIN, level, "[%s:%d] "format, __FILE__, __LINE__, ##__VA_ARGS__)
-#define BNG_INFO(format, ...) g_log (G_LOG_DOMAIN, level, format, ##__VA_ARGS__)
-#else
-#define BNG_LOG(level, format, ...) g_log (NULL, level, "[%s:%d] "format, __FILE__, __LINE__, ##__VA_ARGS__)
-#define BNG_INFO(format, ...) g_log (NULL, level, format, ##__VA_ARGS__)
-#endif
+typedef enum {
+  BNG_CONSOLE_TYPE_FD     = 1 << 0, /* Use fileno (FILE*) to convert to fd */
+  BNG_CONSOLE_TYPE_FP     = 1 << 2, /* Really a matter of convenienc */
+  BNG_CONSOLE_TYPE_SYSLOG = 1 << 3
+} bng_console_type_t;
 
-#define BNG_WARNING(format, ...) BNG_LOG (G_LOG_LEVEL_WARNING, format, ##__VA_ARGS__)
-#define BNG_CRITICAL(format, ...) BNG_LOG (G_LOG_LEVEL_CRITICAL, format, ##__VA_ARGS__)
-#define BNG_ERROR(format, ...) BNG_LOG (G_LOG_LEVEL_ERROR, format, ##__VA_ARGS__)
-#define BNG_DEBUG(format, ...) BNG_LOG (G_LOG_LEVEL_DEBUG, format, ##__VA_ARGS__)
+typedef struct
+{
+  bng_console_type_t type;
+  union
+  {
+    gint fd;
+    FILE* fp;
+    /* syslog */
+  } device;
+} bng_console_t;
+
+#define BNG_MSG(format, ...) bng_msg (format, ##__VA_ARGS__)
+
+#define BNG_FATAL(format, ...) bng_log ("FATAL [%s:%d]: "format, __FILE__, __LINE__, ##__VA_ARGS__)
+#define BNG_ERR(format, ...) bng_log ("ERROR [%s:%d]: "format, __FILE__, __LINE__, ##__VA_ARGS__)
+#define BNG_WARN(format, ...) bng_log ("WARNING [%s:%d]: "format, __FILE__, __LINE__, ##__VA_ARGS__)
+#define BNG_DBG(format, ...) bng_log ("DEBUG [%s:%d]: "format, __FILE__, __LINE__, ##__VA_ARGS__)
+
+gint bng_console_init (bng_console_t msg, bng_console_t log);
+gint bng_msg (gchar *format, ...);
+gint bng_log (gchar *format, ...);
 
 #ifdef __cplusplus
 }
