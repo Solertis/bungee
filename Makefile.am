@@ -5,9 +5,9 @@ EXTRA_DIST = bungee.lsm bungee.spec bungee.texinfo LICENSE autogen.sh \
 #  following and add `chk' to the EXTRA_DIST list
 #TESTS = chk
 
-SUBDIRS = contrib libbungee shell doc 
+SUBDIRS = contrib libbungee shell doc
 
-maintainer-clean-local: 
+maintainer-clean-local:
 	-find . -name "*~" -exec rm -f {} \;
 	-find . -name ".#*" -exec rm -f {} \;
 	-find . -name Makefile.in -exec rm -f {} \;

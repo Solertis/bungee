@@ -27,12 +27,14 @@ limitations under the License.
 #include "logger.h"
 
 bng_console_t msg_console, log_console;
+bng_log_level_t bng_log_level = BNG_LOG_LEVEL_WARNING;
 
 gint
-bng_console_init (bng_console_t msg, bng_console_t log)
+bng_console_init (bng_console_t msg, bng_console_t log, bng_log_level_t log_level)
 {
   msg_console = msg;
   log_console = log;
+  bng_log_level = log_level;
   return (0);
 }
 
@@ -47,9 +49,9 @@ bng_msg (gchar *format, ...)
 
   switch (msg_console.type)
     {
-    case BNG_CONSOLE_TYPE_FD:
-    case BNG_CONSOLE_TYPE_FP:
+    case BNG_CONSOLE_TYPE_FILE:
     case BNG_CONSOLE_TYPE_SYSLOG:
+    case BNG_CONSOLE_TYPE_ZMQ:
     default:
       fputs (msg_buff, stderr);
       fputc ('\n', stderr);
@@ -72,9 +74,9 @@ bng_log (gchar *format, ...)
 
   switch (log_console.type)
     {
-    case BNG_CONSOLE_TYPE_FD:
-    case BNG_CONSOLE_TYPE_FP:
+    case BNG_CONSOLE_TYPE_FILE:
     case BNG_CONSOLE_TYPE_SYSLOG:
+    case BNG_CONSOLE_TYPE_ZMQ:
     default:
       fputs (log_buff, stderr);
       fputc ('\n', stderr);
