@@ -69,6 +69,7 @@ static gboolean show_version (const gchar *option_name,
   /* Print in small parts whose localizations can hopefully be copied
      from other programs.  */
   g_print (PACKAGE" "VERSION"\n");
+  g_print ("Big data processor inspired by AWK and Spreadsheet");
   g_print (_("Copyright (C) %s %s\n"), "2012", "Red Hat, Inc.");
   g_print (_("License: Apache License, Version 2.0\n"
 	     "This is free software: you are free to change and redistribute it. "
@@ -91,7 +92,7 @@ main (int argc, char **argv)
   /* Glib based option parsing */
   context = g_option_context_new (_("[FILE]"));
 
-  g_option_context_set_summary (context, N_("Bungee is a distributed \"awk\" like framework for analyzing big unstructured data."));
+  g_option_context_set_summary (context, N_("Bungee is a big data processor inspired by AWK and Spreadsheet."));
   g_option_context_set_description (context, N_("For more information, please visit http://www.bungeeproject.org/"));
   g_option_context_add_main_entries (context, opt_entries, PACKAGE);
 
@@ -196,7 +197,6 @@ main (int argc, char **argv)
   g_strfreev (log_devices);
 
 
-
   /* Parse log level */
   /* default log level is WARNING */
   bng_log_level_t _log_level = BNG_LOG_LEVEL_WARNING;
@@ -237,7 +237,6 @@ main (int argc, char **argv)
       BNG_ERR (_("Failed to intialize "PACKAGE));
       exit (1);
     }
-
 
   /* Load BNG_RC startup script */
   if (startup_script)

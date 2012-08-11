@@ -24,25 +24,70 @@ limitations under the License.
 #include <termios.h>
 #include <signal.h>
 #include <glib.h>
+#include <glib/gprintf.h>
 #include <bungee.h>
 
 #include "local-defs.h"
 #include "shell-commands.h"
 
 static gint
-shell_eval (const gchar *code)
+shell_help (const gchar *path)
 {
-  gint status = bng_eval (code);
-  g_print (_("status=[%d]\n"), status);
+  g_printf (_("help - Show this help\n"));
+  g_printf (_("eval EXPR - Evaluate "PACKAGE" expression\n"));
+  g_printf (_("load FILE - Load and evaluate script\n"));
+  g_printf (_("run FILE  - Load and evaluate "PACKAGE" script\n"));
+  return (0);
+}
 
+static gint
+shell_eval (const gchar *path)
+{
+  gint status = 0;
+  if (path && path[0])
+    {
+      status = bng_eval (path);
+      g_print (_("completed with status [%d].\n"), status);
+    }
+  else
+    {
+      status = 1;
+      g_print (_("No code to evaluate.\n"));
+    }
   return (status);
 }
 
 static gint
 shell_load (const gchar *path)
 {
-  gint status = bng_run (path);
-  g_print (_("completed with status [%d]\n"), status);
+  gint status = 0;
+  if (path && path[0])
+    {
+      status = bng_load (path);
+      g_print (_("completed with status [%d].\n"), status);
+    }
+  else
+    {
+      status = 1;
+      g_print (_("File name required.\n"));
+    }
+  return (status);
+}
+
+static gint
+shell_run (const gchar *path)
+{
+  gint status = 0;
+  if (path && path[0])
+    {
+      status = bng_run (path);
+      g_print (_("completed with status [%d].\n"), status);
+    }
+  else
+    {
+      status = 1;
+      g_print (_("File name required.\n"));
+    }
   return (status);
 }
 
@@ -58,6 +103,10 @@ shell_interpreter (const gchar *cmd_line)
 
   if (g_ascii_strcasecmp (cmd, "quit") == 0)
     return (1);
+  else if (g_ascii_strcasecmp (cmd, "help") == 0)
+    {
+      shell_help (args);
+    }
   else if (g_ascii_strcasecmp (cmd, "eval") == 0)
     {
       shell_eval (args);
@@ -65,6 +114,10 @@ shell_interpreter (const gchar *cmd_line)
   else if (g_ascii_strcasecmp (cmd, "load") == 0)
     {
       shell_load (args);
+    }
+  else if (g_ascii_strcasecmp (cmd, "run") == 0)
+    {
+      shell_run (args);
     }
 
   g_strfreev (cmd_list);
