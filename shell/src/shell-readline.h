@@ -1,4 +1,4 @@
-/* 
+/*
 shell-readline.h: readline interface to shell
 
 This file is part of Bungee.
@@ -21,7 +21,6 @@ limitations under the License.
 #ifndef __SHELL_READLINE_H__
 #define __SHELL_READLINE_H__
 
-char *
-rl_gets (const char *prompt);
+void shell_readline_init (void);
 
 #endif /* __SHELL_READLINE_H__ */

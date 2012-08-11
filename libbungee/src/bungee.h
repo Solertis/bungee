@@ -35,7 +35,7 @@ extern "C" {
 #include "python-embedding.h"
 
 /* bng_rc can be NULL or /path/to/.bngrc */
-gint bng_init ();
+gint bng_init (bng_console_t msg, bng_console_t log, bng_log_level_t log_level);
 gint bng_fini (void);
 gint bng_eval (const gchar *code);
 gint bng_load (const gchar *path);

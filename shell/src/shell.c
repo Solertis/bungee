@@ -29,6 +29,7 @@ limitations under the License.
 #include <readline/readline.h>
 #include <readline/history.h>
 
+#include "local-defs.h"
 #include "shell.h"
 #include "shell-readline.h"
 #include "shell-commands.h"
@@ -58,9 +59,11 @@ bng_shell (void)
   //  new_termios.c_cc[VINTR] = 4; // ^D
   tcsetattr (0, TCSANOW, &new_termios);
 
+  shell_readline_init ();
+  rl_bind_key('\t',rl_complete);
+
   do
     {
-      //      cmd = (gchar *) rl_gets (BNG_PROMPT);
       cmd_line = (gchar *) readline (BNG_PROMPT);
       cmd_line = g_strstrip (cmd_line);
 

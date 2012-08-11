@@ -20,57 +20,53 @@ limitations under the License.
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <readline/readline.h>
 #include <readline/history.h>
 #include <glib.h>
+#include <regex.h>
+#include <bungee.h>
 
-#include "bungee.h"
+#include "local-defs.h"
+#include "shell-readline.h"
 
 /* Read a string, and return a pointer to it.
    Returns NULL on EOF. */
-gchar *
-rl_gets (const gchar *prompt)
-{
-  gchar *line_read = NULL;
-
-  /* Get a line from the user. */
-  line_read = readline (prompt);
-
-  /* If the line has any text in it,
-     save it on the history. */
-  if (line_read && *line_read)
-    add_history (line_read);
-
-  return (line_read);
-}
-
-
 static gchar *
-auto_complete (const gchar *text, gint state)
+shell_completion_generator (const gchar *text, gint state)
 {
-  const gchar *command_completion_regex [] = {
-    "^ *$",
-    "^ */[^ ]*$",
-    "^ */help +[^ ]*$",
-    "^ *help +[^ ]*$",
-    "^ */history +[^ ]*$",
-    "^ */eval +[^ ]*$",
-    NULL
-  };
+  const gchar *commands [] = {"help", "quit", "eval", "load", "run", NULL};
+  static gint list_index, len;
+  const gchar *name;
 
-  const gchar *file_completion_regex [] = {
-    "^ */load +[^ ]*$",
-    NULL
-  };
+  if (state == 0)
+    {
+      list_index = 0;
+      len = strlen (text);
+    }
+
+  while ((name = commands[list_index++])) {
+    if (g_ascii_strncasecmp (name, text, len) == 0)
+      return (g_strdup (name));
+  }
+
+  /* If no names matched, then return NULL. */
+  return ((gchar *)NULL);
 }
 
-
-gchar **rl_auto_complete (const gchar *text, gint start, int end)
+static gchar **
+shell_completion_matches (const gchar *text, gint start, gint end)
 {
   gchar **matches  = (char **)NULL;
 
-  matches = rl_completion_matches (text, auto_complete);
+  if (start == 0)
+    matches = rl_completion_matches (text, shell_completion_generator);
 
-  return matches;
+  return (matches);
+}
 
+void
+shell_readline_init (void)
+{
+  rl_attempted_completion_function = shell_completion_matches;
 }

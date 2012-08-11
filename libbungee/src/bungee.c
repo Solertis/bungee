@@ -37,7 +37,7 @@ bng_eval (const gchar *code)
 {
   if (code == NULL)
     {
-      BNG_DEBUG (_("Invalid argument, code is NULL"));
+      BNG_DBG (_("Invalid argument, code is NULL"));
       errno = EINVAL;
       return (1);
     }
@@ -79,7 +79,7 @@ bng_load (const gchar *bng_script)
   FILE* pyscript = fopen (_bng_script, "r");
   if (pyscript == NULL)
     {
-      BNG_DEBUG (_("Unable to read [%s], %s"), _bng_script, strerror (errno));
+      BNG_DBG (_("Unable to read [%s], %s"), _bng_script, strerror (errno));
       status = 1;
       goto END;
     }
@@ -96,11 +96,13 @@ bng_load (const gchar *bng_script)
 /* Initialize bungee environment */
 /*********************************/
 gint
-bng_init (void)
+bng_init (bng_console_t msg, bng_console_t log, bng_log_level_t log_level)
 {
+  bng_console_init (msg, log, log_level);
+
   if (PY_MAJOR_VERSION < 3)
     {
-      BNG_ERROR (_("Requires Python version 3 or above"));
+      BNG_ERR (_("Requires Python version 3 or above"));
       return 1;
     }
 
@@ -151,13 +153,13 @@ bng_run (const gchar *bng_script)
   status = bng_load (bng_script);
   if (status != 0)
   {
-    BNG_DEBUG (_("Error loading "PACKAGE" script [%s]"), bng_script);
+    BNG_DBG (_("Error loading "PACKAGE" script [%s]"), bng_script);
     return (status);
   }
 
   if (bng_engine () != 0)
   {
-    BNG_DEBUG (_("Error executing "PACKAGE" script [%s]"), bng_script);
+    BNG_DBG (_("Error executing "PACKAGE" script [%s]"), bng_script);
     return (1);
   }
 

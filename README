@@ -1,7 +1,7 @@
 bungee
 ======
 
-A simple framework for analyzing big unstructured data.
+Big data processor inspired by AWK and Spreadsheet.
 
   Copyright (C) 2012 Red Hat, Inc.
 
