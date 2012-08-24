@@ -1,0 +1,7 @@
+# Config::Simple 4.59
+# Mon Aug 20 23:59:57 2012
+
+xml_lang: en-US
+type: Book
+brand: @PUBLICAN_BRAND@
+show_remarks: 1

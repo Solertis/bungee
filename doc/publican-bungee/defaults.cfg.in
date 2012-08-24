@@ -1,0 +1,5 @@
+# Config::Simple 4.59
+# Mon Aug 20 20:30:11 2012
+
+doc_url: "@PACKAGE_URL@/docs"
+prod_url: "@PACKAGE_URL@"
