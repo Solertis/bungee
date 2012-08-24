@@ -34,6 +34,7 @@ static gint
 shell_help (const gchar *path)
 {
   g_printf (_("help - Show this help\n"));
+  g_printf (_("quit - Quit this shell\n"));
   g_printf (_("eval EXPR - Evaluate "PACKAGE" expression\n"));
   g_printf (_("load FILE - Load and evaluate script\n"));
   g_printf (_("run FILE  - Load and evaluate "PACKAGE" script\n"));

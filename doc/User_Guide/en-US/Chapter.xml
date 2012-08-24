@@ -1,0 +1,39 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+<!ENTITY % BOOK_ENTITIES SYSTEM "User_Guide.ent">
+%BOOK_ENTITIES;
+]>
+<chapter id="chap-User_Guide-Introduction">
+  <title>Introduction to Bungee</title>
+  <para>
+    Bungee is a Big Data Processor modelled after Unix AWK utility. The core of Bungee is a distributed data processing framework written in C language. Unlike AWK's C like interpreted programming language, Bungee uses familiar Python language for big data analysis. This means users can take advantage of Python's rich string processing and scientific / math packages while writing Bungee scripts.
+  </para>
+  <para>
+    <itemizedlist>
+      <listitem><para>Keep it simple and predictable. Simplicity is the ultimate sophistication.</para></listitem>
+      <listitem><para>Handle unstructured data sources.</para></listitem>
+      <listitem><para>Scale to Petabytes of information and 1000s of nodes.</para></listitem>
+      <listitem><para>Interactive results available at every step of analysis. No Map-Reduce.</para></listitem>
+      <listitem><para>Handle both static and continuous stream of data.</para></listitem>
+    </itemizedlist>
+  </para>
+  <para>
+    Challenging part of modern day analytics is not the statistical analysis of data, but the extraction of meaningful meta information from massive amounts of raw data (needle in hay stack problem). Statisticians had powerful tools for decades, but those tools did not scale to handle the explosion of unstructured data. Bungee project hopes to fill this gap.
+  </para>
+
+  <section id="sect-User_Guide-Introduction-Hello-World-Script_1">
+    <title>My first "Hello World" Bungee script</title>
+    <para>
+      def BEGIN()
+      print("Hello Bungee")
+    </para>
+  </section>
+
+  <section id="sect-User_Guide-Test_Chapter-Test_Section_2">
+    <title>Structure of Bungee Script</title>
+    <para>
+      __TODO__
+    </para>
+  </section>
+
+</chapter>

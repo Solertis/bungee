@@ -1,0 +1,8 @@
+# Config::Simple 4.59
+# Mon Aug 20 20:30:11 2012
+
+version: "@PACKAGE_VERSION@"
+xml_lang: "en-US"
+release: 0
+type: brand
+brand: bungee

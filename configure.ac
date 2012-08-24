@@ -14,15 +14,22 @@ ISODATE=`date +%Y-%m-%d`
 AC_SUBST(ISODATE)
 AC_CANONICAL_HOST
 AC_CONFIG_FILES([bungee.lsm
-		bungee.spec
-		Makefile
-		libbungee/Makefile
-		libbungee/src/Makefile
-		contrib/Makefile
-		doc/Makefile
-		shell/Makefile
-		shell/src/Makefile
-		])
+	bungee.spec
+	Makefile
+	libbungee/Makefile
+	libbungee/src/Makefile
+	contrib/Makefile
+	doc/Makefile
+	doc/publican-bungee/publican-bungee.spec
+	doc/publican-bungee/defaults.cfg
+	doc/publican-bungee/publican.cfg
+	doc/User_Guide/publican.cfg
+	doc/User_Guide/Makefile
+	doc/User_Guide/en-US/User_Guide.ent
+	doc/User_Guide/en-US/Book_Info.xml
+	shell/Makefile
+	shell/src/Makefile
+	])
 
 dnl Checks for programs.
 AC_PROG_INSTALL
@@ -60,5 +67,46 @@ AC_SEARCH_LIBS([msgpack_version], [msgpack], , AC_MSG_ERROR([msgpack serializati
 dnl zmq library
 AC_CHECK_HEADERS([zmq.h])
 AC_SEARCH_LIBS([zmq_init], [zmq], , AC_MSG_ERROR([zmq messaging library not found]))
+
+dnl ###### Enable buulding of publican guides #######
+AC_ARG_ENABLE([docs],
+    AS_HELP_STRING([--enable-docs], [build publican documentation]),
+    [enable_docs="yes"],
+    [enable_docs="no"])
+
+if test "$enable_docs" == "yes"; then
+    DOC_DIRS="User_Guide"
+else
+    DOC_DIRS=""
+fi
+AC_SUBST(DOC_DIRS)
+
+AC_CHECK_PROG(have_publican, publican, yes, no)
+if test "$enable_docs" == "yes" -a "x${have_publican}" != "xyes"; then
+	AC_MSG_ERROR([cannot find "publican" tool for building documentation])
+fi
+
+dnl ###### Optionally set custom publican brand optionally (For example Red Hat theme) #######
+dnl "bungee" brand is under $(srcdir)/doc/publican-bungee/. Before you use this option, you must
+dnl install "bunge" brand. Run the "sudo $(srcdir)/doc/publican-bungee/install.sh".
+AC_ARG_WITH([publican-brand],
+    AS_HELP_STRING([--with-publican-brand=BRAND],
+	[Use this publican BRAND instead of default "bungee" publican brand.]),
+    [publican_brand=$withval])
+
+if test "$publican_brand" == "yes"; then
+	AC_MSG_ERROR([must specify publican brand value for --with-publican-brand=BRAND])
+fi
+
+if test -n "$publican_brand"; then
+    PUBLICAN_BRAND=$publican_brand
+else
+    PUBLICAN_BRAND="bungee"
+fi
+AC_SUBST(PUBLICAN_BRAND)
+
+if test -n "$publican_brand" -a "$enable_docs" == "no"; then
+	AC_MSG_ERROR([must use --enable-docs along with --with-publican-brand=BRAND])
+fi
 
 AC_OUTPUT
