@@ -1,3 +1,5 @@
+EXTRA_DIST = COPYING README overrides.cfg en-US
+
 all: $(brand_sources)
 	-publican build --formats xml --langs all --publish
 
@@ -7,10 +9,10 @@ package: $(brand_sources)
 source-package: $(brand_sources)
 	-publican package --lang=en-US && find -name "*rpm" -type f
 
-clean:
+clean-local:
 	-publican clean
 
-install:
+install-data-local:
 	@if ! test -d publish ; \
 	then \
 		echo Please run \"make\" to compile before \"make install\". ; \
@@ -29,7 +31,7 @@ install:
 	fi
 	-publican install_brand --path /usr/share/publican/Common_Content
 
-uninstall:
+uninstall-local:
 	@runner=`whoami` ; \
 	if test $$runner != "root" ; \
 	then \

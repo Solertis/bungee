@@ -12,8 +12,8 @@ Example :
 
 For Developers
 ==============
-If you are compiling source checkout from git repository, you need to
-generate build script first.
+If you are compiling source from the git repository, you need to
+generate build scripts first.
    $ ./autogen.sh && ./configure --prefix=""
 
 If you want to delete all auto-generated files from your local copy,
@@ -21,7 +21,7 @@ you can perform maintainer-clean.
    $ make maintainer-clean
 
 To compile with debug symbols
-   $ ./autogen.sh && CGLAGS="-O0 -g" ./configure --prefix=/usr
+   $ ./autogen.sh && CGLAGS="-O0 -g" ./configure --prefix=""
 
 
 Building Documentation
@@ -30,11 +30,15 @@ NOTE: Regular users can download PDF or HTML documentation from the project site
 Only developers and package maintainers are required to build documentation.
 
 Bungee documentation uses publican system (based on docbook).
-Bungee brand (i.e. bungee theme package) is available in the source
-repository under $(srcdir)/doc/publican-bungee/.
+Bungee brand (i.e. bungee theme) package is under $(srcdir)/doc/publican-bungee/.
 
-Before you enable building documentation with "./configure --enable-docs",
-you must have installed bungee brand package. Follow instructions below.
-   $ cd ./doc/publican-bungee/
+Enabling Documentation:
+-----------------------
+   $ ./configure --prefix="" --with-docs
+
+Before you proceed with the compilation, you need to install publican bungee brand once.
+   $ cd doc/publican-bungee/
    $ make
    $ sudo make install
+   $ cd -
+   $ make
