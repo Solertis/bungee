@@ -9,6 +9,6 @@ libbungee_la_SOURCES = bungee.c python-embedding.c logger.c
 # public header file that needs to be installed
 include_HEADERS =
 # local header files necessary to build this library
-noinst_HEADERS = bungee.h python-embedding.h logger.h
+noinst_HEADERS = bungee.h python-embedding.h logger.h local-defs.h
 
 CLEANFILES = *~

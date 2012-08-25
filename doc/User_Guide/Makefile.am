@@ -1,17 +1,20 @@
-pdf_doc = tmp/en-US/pdf/$(PACKAGE_NAME)-$(PACKAGE_VERSION)-User_Guide-en-US.pdf
-publican_sources = en-US/User_Guide.ent en-US/Book_Info.xml en-US/User_Guide.xml en-US/Author_Group.xml en-US/Revision_History.xml en-US/Preface.xml en-US/Chapter.xml
-pdfdir = $(docdir)
-dist_pdf_DATA = $(pdf_doc)
+EXTRA_DIST = en-US
+pdf_guide = publish/en-US/$(PACKAGE_NAME)/$(PACKAGE_VERSION)/pdf/User_Guide/$(PACKAGE_NAME)-$(PACKAGE_VERSION)-User_Guide-en-US.pdf
+html_guide = publish/desktop
 
-$(pdf_doc): $(publican_sources)
-	-publican build --formats=pdf --langs=en-US
+all: publish
+
+publish:
+	-publican build --formats=pdf,html-desktop --langs=en-US --publish
 
 clean-local:
 	-publican clean
 
-install-data-local:
-	$(INSTALL) -m 755 -d $(docdir)
-	$(INSTALL) -m 755 $(pdf_doc) $(docdir)
+install-data-local: publish
+	$(INSTALL) -m 755 -d $(docdir)/PDF/en-US
+	$(INSTALL) -m 755 $(pdf_guide) $(docdir)/PDF/en-US
+	$(INSTALL) -m 755 -d $(docdir)/HTML/en-US
+	-cp -r $(html_guide)/en-US/* $(docdir)/HTML/en-US
 
-#uninstall-local:
-#	$(RM) -r $(docdir)
+uninstall-local:
+	$(RM) -r $(docdir)

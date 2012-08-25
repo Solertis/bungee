@@ -20,6 +20,7 @@ AC_CONFIG_FILES([bungee.lsm
 	libbungee/src/Makefile
 	contrib/Makefile
 	doc/Makefile
+	doc/publican-bungee/Makefile
 	doc/publican-bungee/publican-bungee.spec
 	doc/publican-bungee/defaults.cfg
 	doc/publican-bungee/publican.cfg
@@ -75,7 +76,7 @@ AC_ARG_ENABLE([docs],
     [enable_docs="no"])
 
 if test "$enable_docs" == "yes"; then
-    DOC_DIRS="User_Guide"
+    DOC_DIRS="publican-bungee User_Guide"
 else
     DOC_DIRS=""
 fi
