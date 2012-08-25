@@ -18,6 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+#include <bungee.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -25,7 +26,6 @@ limitations under the License.
 #include <readline/history.h>
 #include <glib.h>
 #include <regex.h>
-#include <bungee.h>
 
 #include "local-defs.h"
 #include "shell-readline.h"

@@ -18,13 +18,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+#include <bungee.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
 #include <termios.h>
 #include <signal.h>
-#include <bungee.h>
 #include <glib.h>
 #include <readline/readline.h>
 #include <readline/history.h>

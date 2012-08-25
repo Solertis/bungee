@@ -32,7 +32,7 @@ extern "C" {
 
 gint bng_py_init (void);
 gint bng_py_fini (void);
-gint bng_py_hook_call (const gchar *hook_name, char *format, ...);
+PyObject *bng_py_hook_call (const gchar *hook_name, char *format, ...);
 
 #ifdef __cplusplus
 }

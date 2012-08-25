@@ -131,14 +131,17 @@ gint
 bng_engine (void)
 {
   /* BEGIN hook is optional */
-  bng_py_hook_call (BNG_HOOK_BEGIN, NULL);
+  PyObject *py_val;
+  py_val = bng_py_hook_call (BNG_HOOK_BEGIN, NULL);
+  Py_XDECREF (py_val);
 
   /*
     Heart of Bungee!. As data flows from INPUT hook, call MATCH and TARGET appropriately.
    */
 
   /* END hook is optional */
-  bng_py_hook_call (BNG_HOOK_END, NULL);
+  py_val = bng_py_hook_call (BNG_HOOK_END, NULL);
+  Py_XDECREF (py_val);
 
   return (0);
 }
