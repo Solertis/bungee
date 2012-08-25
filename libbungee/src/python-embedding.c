@@ -149,18 +149,23 @@ bng_py_hook (const gchar *hook_name)
 }
 */
 
-gint
+/*
+  Invokes a python procedure and returns its value. Caller assumes the
+  responsibility of freeing the return value with Py_XDECREF or
+  Py_DECREF
+ */
+PyObject *
 bng_py_hook_call (const gchar *hook_name, char *format, ...)
 {
   if (bng_py_modules.main == NULL)
     {
       BNG_WARN (_(PACKAGE" main module is not initialized"));
-      return (1);
+      return (NULL);
     }
 
-  PyObject *py_hook = NULL, *py_result = NULL;
+  PyObject *py_hook, *py_result;
   va_list args;
-  PyObject *main_dict = NULL;
+  PyObject *main_dict;
 
   /* Borrowed reference to main dict */
   main_dict = PyModule_GetDict (bng_py_modules.main);
@@ -171,29 +176,27 @@ bng_py_hook_call (const gchar *hook_name, char *format, ...)
   if (py_hook == NULL)
     {
       BNG_DBG (_("[%s] hook function is not declared"), hook_name);
-      return (1);
+      return (NULL);
     }
 
   if (PyCallable_Check (py_hook) == 0)
     {
       BNG_WARN (_("[%s] hook function is not callable"), hook_name);
-      return (1);
+      return (NULL);
     }
 
   if (format && *format)
     {
       va_start (args, format);
       py_result = PyObject_CallFunction (py_hook, format, args, NULL);
-      Py_XDECREF (py_result);
       va_end (args);
+      return (py_result);
     }
   else
     {
       py_result = PyObject_CallFunction (py_hook, NULL);
-      Py_XDECREF (py_result);
+      return (py_result);
     }
-
-  return (0);
 }
 
 gint

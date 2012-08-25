@@ -18,13 +18,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+#include <bungee.h>
 #include <stdio.h>
 #include <sys/types.h>
 #include <stdlib.h>
 #include <string.h>
 #include <glib.h>
 #include <glib/gstdio.h>
-#include <bungee.h>
 
 #include "local-defs.h"
 #include "shell.h"

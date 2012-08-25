@@ -26,6 +26,7 @@ limitations under the License.
 extern "C" {
 #endif
 
+#include <Python.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <inttypes.h>

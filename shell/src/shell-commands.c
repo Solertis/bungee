@@ -18,6 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+#include <bungee.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -25,7 +26,6 @@ limitations under the License.
 #include <signal.h>
 #include <glib.h>
 #include <glib/gprintf.h>
-#include <bungee.h>
 
 #include "local-defs.h"
 #include "shell-commands.h"
