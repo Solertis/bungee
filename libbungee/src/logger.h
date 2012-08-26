@@ -25,7 +25,6 @@ limitations under the License.
 extern "C" {
 #endif
 
-
 typedef enum {
   BNG_LOG_LEVEL_FATAL,
   BNG_LOG_LEVEL_ERROR,
