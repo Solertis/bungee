@@ -1,0 +1,9 @@
+def BEGIN():
+    print("Hello Begin")
+
+def INPUT():
+    print("In the guts")
+    return(None)
+
+def END():
+    print("Bye Bye!")

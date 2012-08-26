@@ -30,6 +30,7 @@ limitations under the License.
 #include "local-defs.h"
 #include "logger.h"
 #include "python-embedding.h"
+#include "libbungee.h"
 
 /* Evaluate bungee code */
 gint
@@ -39,13 +40,13 @@ bng_eval (const gchar *code)
     {
       BNG_DBG (_("Invalid argument, code is NULL"));
       errno = EINVAL;
-      return (1);
+      return (-1);
     }
 
   if (PyRun_SimpleString (code) == 0)
     return (0);
   else
-    return (1);
+    return (-1);
 }
 
 /*************************/
@@ -103,7 +104,8 @@ bng_init (bng_console_t msg, bng_console_t log, bng_log_level_t log_level)
   if (PY_MAJOR_VERSION < 3)
     {
       BNG_ERR (_("Requires Python version 3 or above"));
-      return 1;
+      errno = ENOPKG;
+      return (-1);
     }
 
   bng_py_init ();
@@ -138,6 +140,35 @@ bng_engine (void)
   /*
     Heart of Bungee!. As data flows from INPUT hook, call MATCH and TARGET appropriately.
    */
+  while (1)
+    {
+      py_val = bng_py_hook_call (BNG_HOOK_INPUT, NULL);
+
+      /* Some error occured */
+      if (py_val == NULL)
+	{
+	  PyErr_Print ();
+	  Py_XDECREF (py_val);
+	  return (-1);
+	}
+
+      /* No more data to process. Reached end of data source. */
+      if (py_val == Py_None)
+	{
+	  Py_XDECREF (py_val);
+	  break;
+	}
+
+      if (!PyDict_Check(py_val))
+	{
+	  Py_XDECREF (py_val);
+	  PyErr_SetString (PyExc_TypeError, _("INPUT returned bad data. Expecting a dictionary type."));
+	  PyErr_Print ();
+	  errno = EINVAL;
+	  return (-1);
+	}
+      Py_XDECREF (py_val);
+    }
 
   /* END hook is optional */
   py_val = bng_py_hook_call (BNG_HOOK_END, NULL);
@@ -157,13 +188,13 @@ bng_run (const gchar *bng_script)
   if (status != 0)
   {
     BNG_DBG (_("Error loading "PACKAGE" script [%s]"), bng_script);
-    return (status);
+    return (-1);
   }
 
   if (bng_engine () != 0)
   {
     BNG_DBG (_("Error executing "PACKAGE" script [%s]"), bng_script);
-    return (1);
+    return (-1);
   }
 
   return (0);

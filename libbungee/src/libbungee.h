@@ -1,5 +1,5 @@
 /*
-python-embedding.h: Use python as extension language.
+libbungee.h: core bungee routines
 
 This file is part of Bungee.
 
@@ -18,19 +18,27 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#ifndef _PYTHON_EMBEDDING_H
-#define _PYTHON_EMBEDDING_H
+
+#ifndef _LIBBUNGEE_H
+#define _LIBBUNGEE_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-gint bng_py_init (void);
-gint bng_py_fini (void);
-PyObject *bng_py_hook_call (const gchar *hook_name, char *format, ...);
+#define BNG_HOOK_BEGIN  "BEGIN"
+#define BNG_HOOK_END    "END"
+#define BNG_HOOK_INPUT  "INPUT"
+
+/* bng_rc can be NULL or /path/to/.bngrc */
+gint bng_init (bng_console_t msg, bng_console_t log, bng_log_level_t log_level);
+gint bng_fini (void);
+gint bng_eval (const gchar *code);
+gint bng_load (const gchar *path);
+gint bng_run (const gchar *bng_script);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* _PYTHON_EMBEDDING_H */
+#endif /* _LIBBUNGEE_H */

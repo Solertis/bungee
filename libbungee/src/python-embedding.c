@@ -114,45 +114,8 @@ bng_py_init (void)
 }
 
 /*
-gint
-bng_py_hook (const gchar *hook_name)
-{
-  if (bng_py_modules.main == NULL)
-    {
-      BNG_WARN (_(PACKAGE" main module has been initialized yet"));
-      return (1);
-    }
-
-  if (!PyObject_HasAttrString (bng_py_modules.main, hook_name))
-    {
-      BNG_DBG (_(PACKAGE" [%s] hook is missing"), hook_name);
-      return (1);
-    }
-
-  PyObject *py_hook=NULL, *py_result=NULL;
-
-  py_hook = PyObject_GetAttrString (bng_py_modules.main, hook_name);
-  if (py_hook && PyCallable_Check (py_hook))
-    {
-      py_result = PyObject_CallFunction (py_hook, NULL);
-      Py_XDECREF (py_result);
-    }
-  else
-    {
-      BNG_DBG (_("[%s] hook is not a callable function"), hook_name);
-      Py_XDECREF (py_hook);
-      return (1);
-    }
-
-  Py_XDECREF (py_hook);
-  return (0);
-}
-*/
-
-/*
   Invokes a python procedure and returns its value. Caller assumes the
-  responsibility of freeing the return value with Py_XDECREF or
-  Py_DECREF
+  responsibility of freeing the return value with Py_XDECREF or Py_DECREF.
  */
 PyObject *
 bng_py_hook_call (const gchar *hook_name, char *format, ...)

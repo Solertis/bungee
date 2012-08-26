@@ -1,0 +1,26 @@
+import posix
+import string
+
+passwd = None
+
+def BEGIN():
+    global passwd
+    passwd = open('/etc/passwd')
+
+def INPUT():
+    global passwd
+    pwdict = {}
+    pwent = passwd.readline()[:-1].split(':')
+    if len(pwent) == 1:
+        return None
+
+    pwdict['name'] = pwent[0]
+    pwdict['uid'] = pwent[2]
+    pwdict['gid'] = pwent[3]
+    pwdict['home'] = pwent[5]
+    pwdict['shell'] = pwent[6]
+
+    return (pwdict)
+
+def END():
+    print("Bye Bye!")
