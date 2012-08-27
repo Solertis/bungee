@@ -65,9 +65,9 @@ dnl msgpack library
 AC_CHECK_HEADERS([msgpack.h])
 AC_SEARCH_LIBS([msgpack_version], [msgpack], , AC_MSG_ERROR([msgpack serialization library not found]))
 
-dnl zmq library
-AC_CHECK_HEADERS([zmq.h])
-AC_SEARCH_LIBS([zmq_init], [zmq], , AC_MSG_ERROR([zmq messaging library not found]))
+dnl dnl zmq library
+dnl AC_CHECK_HEADERS([zmq.h])
+dnl AC_SEARCH_LIBS([zmq_init], [zmq], , AC_MSG_ERROR([zmq messaging library not found]))
 
 dnl ###### Enable buulding of publican guides #######
 AC_ARG_ENABLE([docs],

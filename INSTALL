@@ -21,8 +21,9 @@ you can perform maintainer-clean.
    $ make maintainer-clean
 
 To compile with debug symbols
-   $ ./autogen.sh && CGLAGS="-O0 -g" ./configure --prefix=""
-
+   $ ./autogen.sh && CGLAGS="-g -O0 -fno-inline" ./configure --prefix=""
+   $ make install
+   $ gdb /bin/bungee
 
 Building Documentation
 ======================
