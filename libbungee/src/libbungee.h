@@ -35,7 +35,7 @@ gint bng_init (bng_console_t msg, bng_console_t log, bng_log_level_t log_level);
 gint bng_fini (void);
 gint bng_eval (const gchar *code);
 gint bng_load (const gchar *path);
-gint bng_run (const gchar *bng_script);
+gint bng_run (const gchar *script_name);
 
 #ifdef __cplusplus
 }

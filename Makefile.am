@@ -15,3 +15,5 @@ maintainer-clean-local:
 	-rm -f missing aclocal.m4 config.h.in config.guess config.sub ltmain.sh \
 		install-sh configure depcomp
 	-rm -f bungee-@PACKAGE_VERSION@.tar.gz bungee-@PACKAGE_VERSION@.tar.bz2
+	-rm -f doc/publican-bungee/publican-bungee.spec doc/publican-bungee/publican.cfg doc/publican-bungee/defaults.cfg
+	-rm -f doc/User_Guide/publican.cfg doc/User_Guide/en-US/User_Guide.ent doc/User_Guide/en-US/Book_Info.xml

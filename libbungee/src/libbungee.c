@@ -53,19 +53,19 @@ bng_eval (const gchar *code)
 /* Load bungee extension */
 /*************************/
 gint
-bng_load (const gchar *bng_script)
+bng_load (const gchar *script_name)
 {
   struct stat stat_buf;
-  wordexp_t exp_bng_script;
-  const gchar *_bng_script = NULL;
+  wordexp_t exp_script_name;
+  const gchar *_script_name = NULL;
   gint status = 0;
 
-  if (wordexp(bng_script, &exp_bng_script, 0) == 0)
-    _bng_script = exp_bng_script.we_wordv[0];
+  if (wordexp(script_name, &exp_script_name, 0) == 0)
+    _script_name = exp_script_name.we_wordv[0];
   else
-    _bng_script = bng_script;
+    _script_name = script_name;
 
-  if (stat (_bng_script, &stat_buf) !=0)
+  if (stat (_script_name, &stat_buf) !=0)
     {
       status = 1; /* File likely doesn't exist */
       goto END;
@@ -77,18 +77,18 @@ bng_load (const gchar *bng_script)
       goto END;
     }
 
-  FILE* pyscript = fopen (_bng_script, "r");
-  if (pyscript == NULL)
+  FILE* script_fp = fopen (_script_name, "r");
+  if (script_fp == NULL)
     {
-      BNG_DBG (_("Unable to read [%s], %s"), _bng_script, strerror (errno));
+      BNG_DBG (_("Unable to read [%s], %s"), _script_name, strerror (errno));
       status = 1;
       goto END;
     }
 
-  status = PyRun_SimpleFileEx (pyscript, _bng_script, TRUE);
+  status = PyRun_SimpleFileEx (script_fp, _script_name, TRUE);
 
  END:
-  wordfree (&exp_bng_script);
+  wordfree (&exp_script_name);
   return (status);
 }
 
@@ -148,7 +148,6 @@ bng_engine (void)
       if (py_val == NULL)
 	{
 	  PyErr_Print ();
-	  Py_XDECREF (py_val);
 	  return (-1);
 	}
 

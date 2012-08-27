@@ -1,5 +1,5 @@
 /*
-python-embedding.h: Use python as extension language.
+python-module-bungee.h: BUNGEE module.
 
 This file is part of Bungee.
 
@@ -18,19 +18,19 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#ifndef _PYTHON_EMBEDDING_H
-#define _PYTHON_EMBEDDING_H
+#ifndef _PYTHON_MODULE_BUNGEE_H
+#define _PYTHON_MODULE_BUNGEE_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-PyObject *bng_py_hook_call (const gchar *hook_name, char *format, ...);
-gint bng_py_init (void);
-gint bng_py_fini (void);
+gint mod_bungee_register (void);
+gint mod_bungee_init (void);
+gint mod_bungee_fini (void);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* _PYTHON_EMBEDDING_H */
+#endif /* _PYTHON_MODULE_BUNGEE_H */
