@@ -5,7 +5,7 @@ EXTRA_DIST = bungee.lsm bungee.spec LICENSE autogen.sh COPYING README AUTHORS TH
 #TESTS = chk
 
 SUBDIRS = contrib libbungee shell doc
-
+ACLOCAL_AMFLAGS = -I m4
 maintainer-clean-local:
 	-find . -name Makefile -exec rm -f {} \;
 	-find . -name "*~" -exec rm -f {} \;
