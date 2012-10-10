@@ -3,6 +3,7 @@ AC_PREREQ([2.67])
 dnl Every other copy of the package version number gets its value from here
 AC_INIT([Bungee], 0.1.proto0, bungee-dev@bungeeproject.org, , http://www.bungeeproject.org)
 AC_CONFIG_SRCDIR([shell/src/bungee.c])
+AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE([gnu dist-bzip2 silent-rules])
 AM_SILENT_RULES
 
@@ -45,11 +46,16 @@ AC_PROG_LIBTOOL
 dnl Checks for header files.
 AC_CHECK_HEADERS(unistd.h sys/param.h sys/time.h time.h sys/mkdev.h sys/sysmacros.h string.h memory.h fcntl.h dirent.h sys/ndir.h ndir.h alloca.h locale.h )
 
+dnl Check for if pkg-config exists
+PKG_PROG_PKG_CONFIG
+
 dnl Checks for typedefs, structures, and compiler characteristics.
 
 dnl Checks for library functions.
 dnl glib2 library flags
-PKG_CHECK_MODULES([GLIB2], [glib-2.0])
+PKG_CHECK_MODULES([GLIB], [glib-2.0])
+GLIB2_CFLAGS=$GLIB_CFLAGS
+GLIB2_LIBS=$GLIB_LIBS
 AC_SUBST(GLIB2_CFLAGS)
 AC_SUBST(GLIB2_LIBS)
 
