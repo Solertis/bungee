@@ -99,6 +99,9 @@ bng_load (const gchar *script_name)
 gint
 bng_init (bng_console_t msg, bng_console_t log, bng_log_level_t log_level)
 {
+  /* Move it to bison parser init later */
+  bindtextdomain ("bison-runtime", BISON_LOCALEDIR);
+
   bng_console_init (msg, log, log_level);
 
   if (PY_MAJOR_VERSION < 3)

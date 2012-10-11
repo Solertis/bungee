@@ -33,6 +33,7 @@ extern "C" {
 #include <glib.h>
 
 #include "logger.h"
+#include "bungee-parser.h"
 #include "python-embedding.h"
 #include "libbungee.h"
 

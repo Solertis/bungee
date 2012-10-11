@@ -10,6 +10,9 @@ AM_SILENT_RULES
 dnl create a config.h file (Automake will add -DHAVE_CONFIG_H)
 AM_CONFIG_HEADER(config.h)
 AC_GNU_SOURCE
+AM_GNU_GETTEXT
+BISON_I18N
+
 AC_SUBST(VERSION)
 ISODATE=`date +%Y-%m-%d`
 AC_SUBST(ISODATE)
