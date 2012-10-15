@@ -17,8 +17,9 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 */
-%x bstring bmlstring
-%option yylineno noyywrap noinput nounput bison-bridge bison-locations
+%x bstring bmlstring bgroupname
+%option yylineno noyywrap noinput nounput
+ // %define api.pure
 
 %{
 #include <string.h>
@@ -26,13 +27,11 @@
 #include "bungee-parser.h"
 #include "bungee-parser.tab.h"
 
-#define _SAVE_TOKEN yylval = strndup (yytext, yyleng)
-
 char *rule_condt;
 static inline void _print_token (enum yytokentype val);
 
 /* Uncomment this line instead if you want to DEBUG */
-// #define BRETURN(val) do { _print_token (val); return val; } while (0)
+//#define BRETURN(val) do { _print_token (val); return val; } while (0)
 #define BRETURN(val) return val
 static unsigned char slstring_type='\0', mlstring_type='\0';
 extern char *group_name, *rule_name, *rule_condt;
@@ -144,17 +143,17 @@ unsigned long sl_start, ml_start;
   BRETURN (TINPUT);
 }
 
-RULE[ \t]+[a-zA-Z0-9_]+(([ \t]+[a-zA-Z0-9_]+)|([ \t]*))\: { /* RULE RuleName [Condtion]: */
-  yytext[yyleng-1]='\0'; /* Skip ":" */
-  sscanf (yytext, "%*s %as %as", &rule_name, &rule_condt);
-  BRETURN (TRULE);
-}
-
 ^(GROUP[ \t]+[a-zA-Z0-9_]+[ \t]+) {
   /* GROUP GroupName */
   yytext[yyleng-1]='\0'; /* Skip ":" */
-  sscanf (yytext, "%*s %as", &group_name);
+  sscanf (yytext, "%*s %as", &yylval.group.name);
   BRETURN (TGROUP);
+ }
+
+RULE[ \t]+[a-zA-Z0-9_]+(([ \t]+[a-zA-Z0-9_]+)|([ \t]*))\: { /* RULE RuleName [Condtion]: */
+  yytext[yyleng-1]='\0'; /* Skip ":" */
+  sscanf (yytext, "%*s %as %as", &yylval.rule.name, &yylval.rule.condt);
+  BRETURN (TRULE);
 }
 
 ^(END[ \t]*\:) { /* END: block */
@@ -196,9 +195,6 @@ static inline void _print_token (enum yytokentype val)
         break;
       case TRULE:
         printf ("<TRULE>");
-        break;
-      case TGLOBAL:
-        printf ("<TGLOBAL>");
         break;
       default:
         printf ("<UNDEFINED>");

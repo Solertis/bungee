@@ -18,10 +18,7 @@
   limitations under the License.
 */
 
-union YYSTYPE {
-  unsigned int id;
-};
-typedef union YYSTYPE YYSTYPE;
+int bng_parse (const char* script_name);
 
 void yyerror (const char *format, ...) __attribute__ ((format (gnu_printf, 1, 2)));
 int yylex ();

@@ -7,7 +7,7 @@ bungee-parser.tab.c: bungee-parser.y
 	-bison -v -d bungee-parser.y
 
 parser: bungee-parser.tab.c lex.yy.c
-	-gcc -Wall -D_GNU_SOURCE -o parser bungee-parser.tab.c lex.yy.c
+	-gcc -Wall -D_DEBUG_PARSER -D_GNU_SOURCE -o parser bungee-parser.tab.c lex.yy.c
 clean:
 	-rm -f parser lex.yy.c bungee-parser.tab.c bungee-parser.tab.h lex.yy.o bungee-parser.output
 

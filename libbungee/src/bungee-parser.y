@@ -28,26 +28,64 @@
 
 #include "bungee-parser.h"
 
-/* Lex will pass expr or regex via this variable. You are responsible for freeing it. */
-char *group_name, *rule_name, *rule_condt;
 #define XFREE(ptr) if (ptr) { free (ptr); }
+
+/* Current yyin script source */
+const char *__script_name=NULL;
+extern int yylineno;
+
+/* Lex will pass expr or regex via this variable. You are responsible for freeing it. */
+char *group_name=NULL, *rule_name=NULL, *rule_condt=NULL;
 %}
 
 /*** Bison declarations ***/
 /* Start symbol */
 %start program
+%error-verbose
 
-/* Union is declared as C Union instead in bungee-parser.h file */
-/* Terminal symbols */
-%token <id> TGLOBAL TBEGIN TINPUT TEND TGROUP TRULE
+%union {
+  struct {
+    char *name;
+  } group;
+  struct {
+    char *name;
+    char *condt;
+  } rule;
+}
+
+/** Terminal symbols **/
+/* Terminal symbols with no value */
+%token TBEGIN TINPUT TEND
+/* Terminal symbols with $1.name (yylval.group.name) value */
+%token <group> TGROUP
+/* Terminal symbols with $1.name (yylval.rule.name) and $1.condt (yylval.rule.condt) value */
+%token <rule> TRULE
+
+/*  Free heap based token values during error recovery */
+%destructor { XFREE ($$.name); XFREE ($$.condt) } <rule>
+%destructor { XFREE ($$.name); } <group>
 
 /* Grammar Rules */
 %%
-program: begincb inputcb rules endcb | error { yyerror ("INPUT block missing"); }
+program: inputcb rules /* valid case */
+  | begincb inputcb rules /* valid case */
+  | inputcb rules endcb /* valid case */
+  | begincb inputcb rules endcb /* valid case */
+  | begincb rules endcb { yyerror ("No INPUT found after BEGIN\n"); }
+  | begincb rules { yyerror ("No INPUT found after BEGIN\n"); }
+  | rules endcb { yyerror ("No INPUT found before RULE(s)\n"); }
+  | rules { yyerror ("No INPUT found before RULE(s)\n"); }
+  | no_rules { yyerror ("No RULEs found after INPUT\n"); }
+  | { yyerror ("No INPUT and RULE(s) found\n");}
   ;
 
+no_rules: begincb inputcb endcb
+  | begincb inputcb
+  | inputcb endcb
+  | inputcb
+
 begincb: /* Empty */
-  | TBEGIN {
+  TBEGIN {
     printf ("def BEGIN():");
   }
   ;
@@ -58,7 +96,7 @@ inputcb: TINPUT {
   ;
 
 endcb: /* Empty */
-  | TEND {
+  TEND {
     printf ("def END():");
   }
   ;
@@ -67,34 +105,42 @@ rules: rule | rules rule;
   ;
 
 rule: TRULE {
-    if (rule_name == NULL)
+    if ($1.name == NULL)
       yyerror ("ERROR: RULE has no name\n");
 
-    if (rule_condt == NULL)
-      yyerror ("ERROR: RULE %s has no condition\n", rule_name);
+    if ($1.condt == NULL)
+      yyerror ("ERROR: RULE %s has no condition\n", $1.name);
 
-    printf ("_BNG_RULES['DEFAULT'].append(('%s', '_RULE_%s()'))\n", rule_name, rule_condt);
-    printf ("def _RULE_%s():", rule_name);
+    printf ("_BNG_RULES['DEFAULT'].append(('%s', '_RULE_%s()'))\n", $1.name, $1.condt);
+    {
+      int i;
+      for (i=0; i<@1.first_column; i++)
+	putchar (' ');
+    }
+    printf ("def _RULE_%s():", $1.name);
 
-    XFREE (rule_name);
-    XFREE (rule_condt);
+    XFREE ($1.name);
+    XFREE ($1.condt);
   }
   | TGROUP TRULE {
-    if (group_name == NULL)
+    if ($1.name == NULL)
       yyerror ("ERROR: GROUP has no name.\n");
 
-    if (rule_name == NULL)
+    if (strncmp ($1.name, "RULE", 4) == 0)
+      yyerror ("ERROR: GROUP has no name.\n");
+
+    if ($2.name == NULL)
       yyerror ("ERROR: RULE has no name.\n");
 
-    if (rule_condt == NULL)
-      yyerror ("ERROR: RULE [%s] has no condition.\n", rule_name);
+    if ($2.condt == NULL)
+      yyerror ("ERROR: RULE [%s] has no condition.\n", $2.name);
 
-    printf ("_BNG_RULES['%s'].append(('%s', '_RULE_%s()'))\n", group_name, rule_name, rule_condt);
-    printf ("def _RULE_%s():", rule_name);
+    printf ("_BNG_RULES['%s'].append(('%s', '_RULE_%s()'))\n", $1.name, $2.name, $2.condt);
+    printf ("def _RULE_%s():", $2.name);
 
-    XFREE (group_name);
-    XFREE (rule_name);
-    XFREE (rule_condt);
+    XFREE ($1.name);
+    XFREE ($2.name);
+    XFREE ($2.condt);
   }
   ;
 %%
@@ -105,20 +151,30 @@ yyerror (const char *format, ...)
   extern int yylineno;
   va_list ap;
   va_start (ap, format);
-  fprintf (stderr, "ERROR[line %d]: ", yylineno);
+  if (__script_name && !__script_name[0])
+    fprintf (stderr, "ERROR[%s:%d]: ", __script_name, yylineno);
+  else
+    fprintf (stderr, "ERROR[line %d]: ", yylineno);
   vfprintf (stderr, format, ap);
-  putchar ('\n');
   va_end (ap);
   exit (1);
 }
 
-#if 0
+int
+bng_parse (const char* script_name)
+{
+  //  __script_name = script_name;
+  yyparse ();
 
+  return 9;
+}
+
+#ifdef _DEBUG_PARSER
 int
 main (void)
 {
-  yyparse ();
-  return (0);
+  bng_parse ("test.bng");
+  return 0;
 }
 
 #endif
