@@ -18,8 +18,11 @@
   limitations under the License.
 */
 %x bstring bmlstring bgroupname
-%option yylineno noyywrap noinput nounput
- // %define api.pure
+%option yylineno noyywrap noinput nounput warn
+ /* %option bison-bridge bison-locations */
+/* %option debug */
+/* %option   8bit reentrant */
+
 
 %{
 #include <string.h>
@@ -36,10 +39,19 @@ static inline void _print_token (enum yytokentype val);
 static unsigned char slstring_type='\0', mlstring_type='\0';
 extern char *group_name, *rule_name, *rule_condt;
 unsigned long sl_start, ml_start;
+
+/* handle locations */
+int yycolumn = 1;
+
+#define YY_USER_ACTION yylloc.first_line = yylloc.last_line = yylineno; \
+  yylloc.first_column = yycolumn; \
+  yylloc.last_column = yycolumn+yyleng-1; \
+  yycolumn += yyleng-1;
 %}
 
 %%
 \n {
+  yycolumn = 1;
   ECHO;
 }
 
@@ -143,18 +155,38 @@ unsigned long sl_start, ml_start;
   BRETURN (TINPUT);
 }
 
-^(GROUP[ \t]+[a-zA-Z0-9_]+[ \t]+) {
-  /* GROUP GroupName */
-  yytext[yyleng-1]='\0'; /* Skip ":" */
-  sscanf (yytext, "%*s %as", &yylval.group.name);
+^(GROUP[ \t]+) {
+  BEGIN (bgroupname);
   BRETURN (TGROUP);
+}
+
+<bgroupname>{
+  [a-zA-Z0-9_]+ {
+  sscanf (yytext, "%as", &yylval.group.name);
+  if (strncmp (yylval.group.name, "RULE", 4) == 0)
+    {
+      free (yylval.group.name);
+      yylval.group.name = NULL;
+      yyless (0);
+    }
+  BEGIN (INITIAL);
+  BRETURN (TGROUP_NAME);
  }
+}
 
 RULE[ \t]+[a-zA-Z0-9_]+(([ \t]+[a-zA-Z0-9_]+)|([ \t]*))\: { /* RULE RuleName [Condtion]: */
   yytext[yyleng-1]='\0'; /* Skip ":" */
   sscanf (yytext, "%*s %as %as", &yylval.rule.name, &yylval.rule.condt);
   BRETURN (TRULE);
 }
+
+RULE[ \t]*\: { /* Error Case: "RULE:" */
+  yytext[yyleng-1]='\0'; /* Skip ":" */
+  yylval.rule.name = NULL;
+  yylval.rule.condt = NULL;
+  BRETURN (TRULE);
+}
+
 
 ^(END[ \t]*\:) { /* END: block */
   BRETURN (TEND);

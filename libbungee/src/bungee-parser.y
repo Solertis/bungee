@@ -28,7 +28,8 @@
 
 #include "bungee-parser.h"
 
-#define XFREE(ptr) if (ptr) { free (ptr); }
+/* Pass the argument to yyparse through to yylex. */
+#define XFREE(ptr) if (ptr) { free (ptr); ptr = NULL;}
 
 /* Current yyin script source */
 const char *__script_name=NULL;
@@ -36,12 +37,21 @@ extern int yylineno;
 
 /* Lex will pass expr or regex via this variable. You are responsible for freeing it. */
 char *group_name=NULL, *rule_name=NULL, *rule_condt=NULL;
-%}
+ %}
 
 /*** Bison declarations ***/
 /* Start symbol */
 %start program
 %error-verbose
+/* %locations
+%initial-action
+{
+  // Initialize the initial location.
+  @$.filename = &__script_name;
+};
+ */
+
+/* %pure_parser */
 
 %union {
   struct {
@@ -55,9 +65,9 @@ char *group_name=NULL, *rule_name=NULL, *rule_condt=NULL;
 
 /** Terminal symbols **/
 /* Terminal symbols with no value */
-%token TBEGIN TINPUT TEND
+%token TBEGIN TINPUT TEND TGROUP
 /* Terminal symbols with $1.name (yylval.group.name) value */
-%token <group> TGROUP
+%token <group> TGROUP_NAME
 /* Terminal symbols with $1.name (yylval.rule.name) and $1.condt (yylval.rule.condt) value */
 %token <rule> TRULE
 
@@ -109,38 +119,41 @@ rule: TRULE {
       yyerror ("ERROR: RULE has no name\n");
 
     if ($1.condt == NULL)
-      yyerror ("ERROR: RULE %s has no condition\n", $1.name);
+      printf ("RULES.APPEND('DEFAULT', '%s', '''True''', '_RULE_%s()'))\n", $1.name,$1.condt);
+    else
+      printf ("RULES.APPEND('DEFAULT', '%s', '''%s''', '_RULE_%s()'))\n", $1.name, $1.condt, $1.condt);
 
-    printf ("_BNG_RULES['DEFAULT'].append(('%s', '_RULE_%s()'))\n", $1.name, $1.condt);
     {
       int i;
-      for (i=0; i<@1.first_column; i++)
-	putchar (' ');
+      printf ("[DEBUG %d %d %d %d]", @TRULE.first_line, @TRULE.first_column, @TRULE.last_line, @TRULE.last_column);
+      for (i=0; i<@1.first_column; i++)	{ putchar (' '); }
     }
     printf ("def _RULE_%s():", $1.name);
 
     XFREE ($1.name);
     XFREE ($1.condt);
   }
-  | TGROUP TRULE {
-    if ($1.name == NULL)
-      yyerror ("ERROR: GROUP has no name.\n");
-
-    if (strncmp ($1.name, "RULE", 4) == 0)
-      yyerror ("ERROR: GROUP has no name.\n");
-
+  | TGROUP TGROUP_NAME TRULE {
     if ($2.name == NULL)
+      yyerror ("ERROR: GROUP has no name.\n");
+
+    if (strncmp ($2.name, "RULE", 4) == 0)
+      yyerror ("ERROR: GROUP has no name.\n");
+
+    if ($3.name == NULL)
       yyerror ("ERROR: RULE has no name.\n");
 
-    if ($2.condt == NULL)
-      yyerror ("ERROR: RULE [%s] has no condition.\n", $2.name);
+    if ($3.condt == NULL)
+      printf ("RULES.APPEND('%s', '%s', '''True''', '_RULE_%s()'))\n", $2.name, $3.name, $3.condt);
+    else
+      printf ("RULES.APPEND('%s', '%s', '''%s''', '_RULE_%s()'))\n", $2.name, $3.name, $3.condt, $3.condt);
 
-    printf ("_BNG_RULES['%s'].append(('%s', '_RULE_%s()'))\n", $1.name, $2.name, $2.condt);
-    printf ("def _RULE_%s():", $2.name);
+    printf ("def _RULE_%s():", $3.name);
 
-    XFREE ($1.name);
+    printf ("[DEBUG %d %d %d %d]", @2.first_line, @2.first_column, @2.last_line, @2.last_column);
     XFREE ($2.name);
-    XFREE ($2.condt);
+    XFREE ($3.name);
+    XFREE ($3.condt);
   }
   ;
 %%
@@ -166,7 +179,7 @@ bng_parse (const char* script_name)
   //  __script_name = script_name;
   yyparse ();
 
-  return 9;
+  return (0);
 }
 
 #ifdef _DEBUG_PARSER
