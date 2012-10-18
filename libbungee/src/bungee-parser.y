@@ -58,8 +58,6 @@ int yylex ();
 /* Current yyin script source */
 const char *__script_name=NULL;
 extern int yylineno;
-
-/* Lex will pass expr or regex via this variable. You are responsible for freeing it. */
 }
 
 /*** Bison declarations ***/
@@ -67,15 +65,15 @@ extern int yylineno;
 %start program
 %error-verbose
 %locations
- /*
+// %pure_parser
+
+/*
 %initial-action
 {
   // Initialize the initial location.
   @$.filename = &__script_name;
 };
- */
-
-/* %pure_parser */
+*/
 
 /* Terminal value type */
 %union {
@@ -131,9 +129,6 @@ rules: rule | rules rule;
   ;
 
 rule: TRULE TRULE_NAME TRULE_CONDT {
-    //if ($1.indent > 0)
-    //  yyerror ("RULE should start at the begginng of line.\n");
-
     if ($2 == NULL)
       yyerror ("RULE has no name.\n");
 
