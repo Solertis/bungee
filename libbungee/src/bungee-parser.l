@@ -29,24 +29,24 @@
 #include "bungee-parser.h"
 #include "bungee-parser.tab.h"
 
-char *rule_condt;
-static inline void _print_token (enum yytokentype val) __attribute__ ((unused));
-static unsigned int _get_indent_len (char *stmt, int len) __attribute__ ((unused));
-static void _eat_up_spaces (void) __attribute__ ((unused));
-
 /* Uncomment this line instead if you want to DEBUG */
 //#define BRETURN(val) do { _print_token (val); return val; } while (0)
 #define BRETURN(val) return val
-static unsigned char slstring_type='\0', mlstring_type='\0';
-unsigned long sl_start, ml_start;
 
 /* handle locations */
 int yycolumn = 1;
-
 #define YY_USER_ACTION yylloc.first_line = yylloc.last_line = yylineno; \
   yylloc.first_column = yycolumn; \
   yylloc.last_column = yycolumn+yyleng-1; \
   yycolumn += yyleng-1;
+
+static inline char _input_ch (void) __attribute__ ((unused));
+static unsigned int _get_indent_len (char *stmt, int len) __attribute__ ((unused));
+static void _eat_up_spaces (void) __attribute__ ((unused));
+static inline void _print_token (enum yytokentype val) __attribute__ ((unused));
+
+static unsigned char slstring_type='\0', mlstring_type='\0';
+unsigned long sl_start, ml_start;
 %}
 
 %%
@@ -204,9 +204,9 @@ RULE { /* Rule Keyword */
 }
 
 <brulecondt>{
-  [^ \t\:]+ { /* Rule Condition */
+  [^\:\n]*[\:] { /* Rule Condition */
+    yytext[yyleng-1] = '\0'; /* Discard ':' */
     yylval.string = strndup (yytext, yyleng);
-    _eat_up_spaces ();
     BEGIN (INITIAL);
     BRETURN (TRULE_CONDT);
   }
@@ -268,22 +268,25 @@ static inline void _print_token (enum yytokentype val)
     }
 }
 
+/* Lex's input() wrapper to safely handle location tacking */
+static inline char
+_input_ch (void)
+{
+  yycolumn++;;
+  return input ();
+}
+
 static void
 _eat_up_spaces (void)
 {
   register int ch;
   for (;;)
     {
-      ch = input ();
+      ch = _input_ch ();
       if ((ch == ' ') || (ch == '\t'))
-	{
-	  yycolumn++;
 	  continue;
-	}
       else if (ch == EOF)
-	{
 	  yyerror ("Unexpected end of file while eating spaces.\n");
-	}
       else
 	{
 	  unput (ch);
