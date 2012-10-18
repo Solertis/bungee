@@ -138,9 +138,9 @@ rule: TRULE TRULE_NAME TRULE_CONDT {
       yyerror ("RULE has no name.\n");
 
     if ($3 == NULL)
-      printf ("RULES.APPEND('DEFAULT', '%s', '''True''', '_RULE_%s()'))\n", $2, $3);
+      printf ("RULES.APPEND('DEFAULT', '%s', lambda: True, '_RULE_%s()'))\n", $2, $3);
     else
-      printf ("RULES.APPEND('DEFAULT', '%s', '''%s''', '_RULE_%s()'))\n", $2, $3, $3);
+      printf ("RULES.APPEND('DEFAULT', '%s', lambda: %s, '_RULE_%s()'))\n", $2, $3, $3);
 
     printf ("def _RULE_%s():", $2);
 
