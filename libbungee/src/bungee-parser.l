@@ -17,12 +17,11 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 */
-%x bstring bmlstring bgroupname
-%option yylineno noyywrap noinput nounput warn
- /* %option bison-bridge bison-locations */
+%x bstring bmlstring bgroupname brulename brulecondt
+%option yylineno noyywrap warn
+/* %option bison-bridge bison-locations */
 /* %option debug */
 /* %option   8bit reentrant */
-
 
 %{
 #include <string.h>
@@ -31,13 +30,14 @@
 #include "bungee-parser.tab.h"
 
 char *rule_condt;
-static inline void _print_token (enum yytokentype val);
+static inline void _print_token (enum yytokentype val) __attribute__ ((unused));
+static unsigned int _get_indent_len (char *stmt, int len) __attribute__ ((unused));
+static void _eat_up_spaces (void) __attribute__ ((unused));
 
 /* Uncomment this line instead if you want to DEBUG */
 //#define BRETURN(val) do { _print_token (val); return val; } while (0)
 #define BRETURN(val) return val
 static unsigned char slstring_type='\0', mlstring_type='\0';
-extern char *group_name, *rule_name, *rule_condt;
 unsigned long sl_start, ml_start;
 
 /* handle locations */
@@ -151,46 +151,79 @@ int yycolumn = 1;
   BRETURN (TBEGIN);
 }
 
+[ \t]+BEGIN[ \t]*\: { /* Error Case */
+  yyerror ("BEGIN keyword should start at the beginning of line.\n");
+}
+
 ^(INPUT[ \t]*\:) { /* INPUT: block */
   BRETURN (TINPUT);
 }
 
-^(GROUP[ \t]+) {
+[ \t]+INPUT[ \t]*\: { /* Error Case */
+  yyerror ("INPUT keyword should start at the beginning of line.\n");
+}
+
+^(GROUP) {
+  _eat_up_spaces ();
   BEGIN (bgroupname);
   BRETURN (TGROUP);
 }
 
 <bgroupname>{
-  [a-zA-Z0-9_]+ {
-  sscanf (yytext, "%as", &yylval.group.name);
-  if (strncmp (yylval.group.name, "RULE", 4) == 0)
-    {
-      free (yylval.group.name);
-      yylval.group.name = NULL;
-      yyless (0);
-    }
-  BEGIN (INITIAL);
-  BRETURN (TGROUP_NAME);
- }
+  [a-zA-Z0-9_]+ { /* Group Name */
+    yylval.string = strndup (yytext, yyleng);
+    if (strncmp (yylval.string, "RULE", 4) == 0)
+      {
+        free (yylval.string);
+        yylval.string = NULL;
+        yyless (0);
+      }
+    _eat_up_spaces ();
+    BEGIN (INITIAL);
+    BRETURN (TGROUP_NAME);
+  }
 }
 
-RULE[ \t]+[a-zA-Z0-9_]+(([ \t]+[a-zA-Z0-9_]+)|([ \t]*))\: { /* RULE RuleName [Condtion]: */
-  yytext[yyleng-1]='\0'; /* Skip ":" */
-  sscanf (yytext, "%*s %as %as", &yylval.rule.name, &yylval.rule.condt);
+[ \t]+GROUP[ \t]+ { /* Error Case */
+  yyerror ("GROUP keyword should start at the beginning of line.\n");
+}
+
+RULE { /* Rule Keyword */
+  _eat_up_spaces ();
+  BEGIN (brulename);
   BRETURN (TRULE);
 }
 
-RULE[ \t]*\: { /* Error Case: "RULE:" */
-  yytext[yyleng-1]='\0'; /* Skip ":" */
-  yylval.rule.name = NULL;
-  yylval.rule.condt = NULL;
-  BRETURN (TRULE);
+<brulename>{
+  [a-zA-Z0-9_]+ { /* Rule Name */
+    yylval.string = strndup (yytext, yyleng);
+    _eat_up_spaces ();
+    BEGIN (brulecondt);
+    BRETURN (TRULE_NAME);
+  }
 }
 
+<brulecondt>{
+  [^ \t\:]+ { /* Rule Condition */
+    yylval.string = strndup (yytext, yyleng);
+    _eat_up_spaces ();
+    BEGIN (INITIAL);
+    BRETURN (TRULE_CONDT);
+  }
+}
+
+^([ \t]+RULE[ \t]+) { /* Error Case */
+  yyerror ("RULE keyword should start at the beginning of line.\n");
+}
 
 ^(END[ \t]*\:) { /* END: block */
   BRETURN (TEND);
 }
+
+[ \t]+END[ \t]*\: { /* Error Case */
+  yyerror ("END keyword should start at the beginning of line.\n");
+}
+
 
 \$\* { /* All field values in a list. */
   fprintf(yyout, "_BNG_GLOBALS.items()");
@@ -207,6 +240,8 @@ RULE[ \t]*\: { /* Error Case: "RULE:" */
 \$[a-zA-Z_][a-zA-Z_0-9]+ { /* Global variable */
   fprintf(yyout, "_BNG_GLOBALS['%s']", yytext);
 }
+
+[ \t]+ ECHO;
 %%
 
 static inline void _print_token (enum yytokentype val)
@@ -233,9 +268,32 @@ static inline void _print_token (enum yytokentype val)
     }
 }
 
-#if 0
+static void
+_eat_up_spaces (void)
+{
+  register int ch;
+  for (;;)
+    {
+      ch = input ();
+      if ((ch == ' ') || (ch == '\t'))
+	{
+	  yycolumn++;
+	  continue;
+	}
+      else if (ch == EOF)
+	{
+	  yyerror ("Unexpected end of file while eating spaces.\n");
+	}
+      else
+	{
+	  unput (ch);
+	  break;
+	}
+    }
+}
+
 static unsigned int
-get_indent_len (char *stmt, int len)
+_get_indent_len (char *stmt, int len)
 {
   unsigned int indent_len, i;
   for (indent_len=0, i=0; i < len; i++)
@@ -247,7 +305,6 @@ get_indent_len (char *stmt, int len)
     }
   return indent_len;
 }
-#endif
 
 #if 0
 int

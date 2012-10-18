@@ -17,8 +17,3 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 */
-
-int bng_parse (const char* script_name);
-
-void yyerror (const char *format, ...) __attribute__ ((format (gnu_printf, 1, 2)));
-int yylex ();

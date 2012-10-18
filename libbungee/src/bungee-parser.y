@@ -19,7 +19,8 @@
 */
 
 /* C declarations */
-%{
+
+%code top {
 #include <stdio.h>
 #include <string.h>
 #include <stdarg.h>
@@ -27,23 +28,46 @@
 #include <errno.h>
 
 #include "bungee-parser.h"
+}
+
+%code provides {
+void yyerror (const char *format, ...) __attribute__ ((format (gnu_printf, 1, 2)));
+}
+
+%code requires {
+/* Terminal location type */
+typedef struct YYLTYPE {
+  int first_line;
+  int first_column;
+  int last_line;
+  int last_column;
+  char *filename;
+} YYLTYPE;
+# define YYLTYPE_IS_DECLARED 1 /* alert the parser that we have our own definition */
+}
+
+%code {
+int bng_parse (const char* script_name);
+
+int yylex ();
 
 /* Pass the argument to yyparse through to yylex. */
 #define XFREE(ptr) if (ptr) { free (ptr); ptr = NULL;}
+#define _PAD_SPACES(num) do { int i; for (i=1; i<num; i++) putchar (' '); } while (0)
 
 /* Current yyin script source */
 const char *__script_name=NULL;
 extern int yylineno;
 
 /* Lex will pass expr or regex via this variable. You are responsible for freeing it. */
-char *group_name=NULL, *rule_name=NULL, *rule_condt=NULL;
- %}
+}
 
 /*** Bison declarations ***/
 /* Start symbol */
 %start program
 %error-verbose
-/* %locations
+%locations
+ /*
 %initial-action
 {
   // Initialize the initial location.
@@ -53,27 +77,19 @@ char *group_name=NULL, *rule_name=NULL, *rule_condt=NULL;
 
 /* %pure_parser */
 
+/* Terminal value type */
 %union {
-  struct {
-    char *name;
-  } group;
-  struct {
-    char *name;
-    char *condt;
-  } rule;
+  char *string;
 }
 
 /** Terminal symbols **/
 /* Terminal symbols with no value */
-%token TBEGIN TINPUT TEND TGROUP
-/* Terminal symbols with $1.name (yylval.group.name) value */
-%token <group> TGROUP_NAME
-/* Terminal symbols with $1.name (yylval.rule.name) and $1.condt (yylval.rule.condt) value */
-%token <rule> TRULE
+%token TBEGIN TINPUT TEND TRULE TGROUP
+/* Terminal symbols with string value */
+%token <string> TGROUP_NAME TRULE_NAME TRULE_CONDT
 
 /*  Free heap based token values during error recovery */
-%destructor { XFREE ($$.name); XFREE ($$.condt) } <rule>
-%destructor { XFREE ($$.name); } <group>
+%destructor { XFREE ($$); } <string>
 
 /* Grammar Rules */
 %%
@@ -81,12 +97,12 @@ program: inputcb rules /* valid case */
   | begincb inputcb rules /* valid case */
   | inputcb rules endcb /* valid case */
   | begincb inputcb rules endcb /* valid case */
-  | begincb rules endcb { yyerror ("No INPUT found after BEGIN\n"); }
-  | begincb rules { yyerror ("No INPUT found after BEGIN\n"); }
-  | rules endcb { yyerror ("No INPUT found before RULE(s)\n"); }
-  | rules { yyerror ("No INPUT found before RULE(s)\n"); }
-  | no_rules { yyerror ("No RULEs found after INPUT\n"); }
-  | { yyerror ("No INPUT and RULE(s) found\n");}
+  | begincb rules endcb { yyerror ("No INPUT found after BEGIN.\n"); }
+  | begincb rules { yyerror ("No INPUT found after BEGIN.\n"); }
+  | rules endcb { yyerror ("No INPUT found before RULE.(s)\n"); }
+  | rules { yyerror ("No INPUT found before RULE(s).\n"); }
+  | no_rules { yyerror ("No RULEs found after INPUT.\n"); }
+  | { yyerror ("No INPUT and RULE(s) found.\n");}
   ;
 
 no_rules: begincb inputcb endcb
@@ -114,46 +130,43 @@ endcb: /* Empty */
 rules: rule | rules rule;
   ;
 
-rule: TRULE {
-    if ($1.name == NULL)
-      yyerror ("ERROR: RULE has no name\n");
+rule: TRULE TRULE_NAME TRULE_CONDT {
+    //if ($1.indent > 0)
+    //  yyerror ("RULE should start at the begginng of line.\n");
 
-    if ($1.condt == NULL)
-      printf ("RULES.APPEND('DEFAULT', '%s', '''True''', '_RULE_%s()'))\n", $1.name,$1.condt);
+    if ($2 == NULL)
+      yyerror ("RULE has no name.\n");
+
+    if ($3 == NULL)
+      printf ("RULES.APPEND('DEFAULT', '%s', '''True''', '_RULE_%s()'))\n", $2, $3);
     else
-      printf ("RULES.APPEND('DEFAULT', '%s', '''%s''', '_RULE_%s()'))\n", $1.name, $1.condt, $1.condt);
+      printf ("RULES.APPEND('DEFAULT', '%s', '''%s''', '_RULE_%s()'))\n", $2, $3, $3);
 
-    {
-      int i;
-      printf ("[DEBUG %d %d %d %d]", @TRULE.first_line, @TRULE.first_column, @TRULE.last_line, @TRULE.last_column);
-      for (i=0; i<@1.first_column; i++)	{ putchar (' '); }
-    }
-    printf ("def _RULE_%s():", $1.name);
+    printf ("def _RULE_%s():", $2);
 
-    XFREE ($1.name);
-    XFREE ($1.condt);
+    XFREE ($2);
+    XFREE ($3);
   }
-  | TGROUP TGROUP_NAME TRULE {
-    if ($2.name == NULL)
-      yyerror ("ERROR: GROUP has no name.\n");
+  | TGROUP TGROUP_NAME TRULE TRULE_NAME TRULE_CONDT {
+    if ($2 == NULL)
+      yyerror ("GROUP has no name.\n");
 
-    if (strncmp ($2.name, "RULE", 4) == 0)
-      yyerror ("ERROR: GROUP has no name.\n");
+    if (strncmp ($2, "RULE", 4) == 0)
+      yyerror ("GROUP has no name.\n");
 
-    if ($3.name == NULL)
-      yyerror ("ERROR: RULE has no name.\n");
+    if ($4 == NULL)
+      yyerror ("RULE has no name.\n");
 
-    if ($3.condt == NULL)
-      printf ("RULES.APPEND('%s', '%s', '''True''', '_RULE_%s()'))\n", $2.name, $3.name, $3.condt);
+    if ($5 == NULL)
+      printf ("RULES.APPEND('%s', '%s', '''True''', '_RULE_%s()'))\n", $2, $4, $5);
     else
-      printf ("RULES.APPEND('%s', '%s', '''%s''', '_RULE_%s()'))\n", $2.name, $3.name, $3.condt, $3.condt);
+      printf ("RULES.APPEND('%s', '%s', '''%s''', '_RULE_%s()'))\n", $2, $4, $5, $5);
 
-    printf ("def _RULE_%s():", $3.name);
+    printf ("def _RULE_%s():", $4);
 
-    printf ("[DEBUG %d %d %d %d]", @2.first_line, @2.first_column, @2.last_line, @2.last_column);
-    XFREE ($2.name);
-    XFREE ($3.name);
-    XFREE ($3.condt);
+    XFREE ($2);
+    XFREE ($4);
+    XFREE ($5);
   }
   ;
 %%
