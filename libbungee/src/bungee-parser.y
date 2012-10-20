@@ -31,7 +31,11 @@
 }
 
 %code provides {
-void yyerror (const char *format, ...) __attribute__ ((format (gnu_printf, 1, 2)));
+/* Flex returns this code upon error */
+#define YYERRCODE  256
+
+/* Error handling routine */
+int yyerror (const char *format, ...) __attribute__ ((format (gnu_printf, 1, 2)));
 }
 
 %code requires {
@@ -47,11 +51,8 @@ typedef struct YYLTYPE {
 }
 
 %code {
-int bng_parse (const char* script_name);
-
 int yylex ();
 
-/* Pass the argument to yyparse through to yylex. */
 #define XFREE(ptr) if (ptr) { free (ptr); ptr = NULL;}
 #define _PAD_SPACES(num) do { int i; for (i=1; i<num; i++) putchar (' '); } while (0)
 
@@ -65,15 +66,6 @@ extern int yylineno;
 %start program
 %error-verbose
 %locations
-// %pure_parser
-
-/*
-%initial-action
-{
-  // Initialize the initial location.
-  @$.filename = &__script_name;
-};
-*/
 
 /* Terminal value type */
 %union {
@@ -82,7 +74,7 @@ extern int yylineno;
 
 /** Terminal symbols **/
 /* Terminal symbols with no value */
-%token TBEGIN TINPUT TEND TRULE TGROUP
+%token TBEGIN TINPUT TEND TRULE TGROUP TEOF
 /* Terminal symbols with string value */
 %token <string> TGROUP_NAME TRULE_NAME TRULE_CONDT
 
@@ -91,102 +83,114 @@ extern int yylineno;
 
 /* Grammar Rules */
 %%
-program: inputcb rules /* valid case */
-  | begincb inputcb rules /* valid case */
-  | inputcb rules endcb /* valid case */
-  | begincb inputcb rules endcb /* valid case */
-  | begincb rules endcb { yyerror ("No INPUT found after BEGIN.\n"); }
-  | begincb rules { yyerror ("No INPUT found after BEGIN.\n"); }
-  | rules endcb { yyerror ("No INPUT found before RULE.(s)\n"); }
-  | rules { yyerror ("No INPUT found before RULE(s).\n"); }
-  | no_rules { yyerror ("No RULEs found after INPUT.\n"); }
-  | { yyerror ("No INPUT and RULE(s) found.\n");}
-  ;
+program: begincb inputcb rules endcb /* valid case */
+| begincb rules endcb { yyerror ("No INPUT section found after BEGIN section.\n"); YYABORT; }
+| begincb inputcb endcb { yyerror ("No RULEs found after INPUT section.\n"); YYABORT; }
+| begincb endcb { yyerror ("No INPUT section or RULEs found.\n"); YYABORT; }
 
-no_rules: begincb inputcb endcb
-  | begincb inputcb
-  | inputcb endcb
-  | inputcb
+begincb: /* Optional */
+| TBEGIN
+{
+  printf ("def BEGIN():");
+}
 
-begincb: /* Empty */
-  TBEGIN {
-    printf ("def BEGIN():");
-  }
-  ;
+inputcb:
+TINPUT
+{
+  printf ("def INPUT():");
+}
 
-inputcb: TINPUT {
-    printf ("def INPUT():");
-  }
-  ;
+rules: rule | rules rule
 
-endcb: /* Empty */
-  TEND {
-    printf ("def END():");
-  }
-  ;
-
-rules: rule | rules rule;
-  ;
-
-rule: TRULE TRULE_NAME TRULE_CONDT {
-    if ($2 == NULL)
+rule: TRULE TRULE_NAME TRULE_CONDT
+{
+  if ($2 == NULL)
+    {
       yyerror ("RULE has no name.\n");
+      YYABORT;
+    }
 
-    if ($3 == NULL)
-      printf ("RULES.APPEND('DEFAULT', '%s', lambda: True, '_RULE_%s()'))\n", $2, $3);
-    else
-      printf ("RULES.APPEND('DEFAULT', '%s', lambda: %s, '_RULE_%s()'))\n", $2, $3, $3);
+  if ($3 == NULL)
+    printf ("RULES.APPEND('DEFAULT', '%s', lambda: True, '_RULE_%s()'))\n", $2, $3);
+  else
+    printf ("RULES.APPEND('DEFAULT', '%s', lambda: %s, '_RULE_%s()'))\n", $2, $3, $3);
 
-    printf ("def _RULE_%s():", $2);
+  printf ("def _RULE_%s():", $2);
 
-    XFREE ($2);
-    XFREE ($3);
-  }
-  | TGROUP TGROUP_NAME TRULE TRULE_NAME TRULE_CONDT {
-    if ($2 == NULL)
+  XFREE ($2);
+  XFREE ($3);
+}
+| TGROUP TGROUP_NAME TRULE TRULE_NAME TRULE_CONDT
+{
+  if ($2 == NULL)
+    {
       yyerror ("GROUP has no name.\n");
+      YYABORT;
+    }
 
-    if (strncmp ($2, "RULE", 4) == 0)
+  if (strncmp ($2, "RULE", 4) == 0)
+    {
       yyerror ("GROUP has no name.\n");
+      YYABORT;
+    }
 
-    if ($4 == NULL)
+  if ($4 == NULL)
+    {
       yyerror ("RULE has no name.\n");
+      YYABORT;
+    }
 
-    if ($5 == NULL)
-      printf ("RULES.APPEND('%s', '%s', '''True''', '_RULE_%s()'))\n", $2, $4, $5);
-    else
-      printf ("RULES.APPEND('%s', '%s', '''%s''', '_RULE_%s()'))\n", $2, $4, $5, $5);
+  if ($5 == NULL)
+    printf ("RULES.APPEND('%s', '%s', '''True''', '_RULE_%s()'))\n", $2, $4, $5);
+  else
+    printf ("RULES.APPEND('%s', '%s', '''%s''', '_RULE_%s()'))\n", $2, $4, $5, $5);
 
-    printf ("def _RULE_%s():", $4);
+  printf ("def _RULE_%s():", $4);
 
-    XFREE ($2);
-    XFREE ($4);
-    XFREE ($5);
-  }
-  ;
+  XFREE ($2);
+  XFREE ($4);
+  XFREE ($5);
+}
+
+endcb: /* Optional */
+| TEND
+{
+  printf ("def END():");
+}
+| error
+{
+  YYABORT;
+}
+
 %%
 
-void
+int
 yyerror (const char *format, ...)
 {
   extern int yylineno;
   va_list ap;
   va_start (ap, format);
-  if (__script_name && !__script_name[0])
+
+  if (__script_name && __script_name[0])
     fprintf (stderr, "ERROR[%s:%d]: ", __script_name, yylineno);
   else
     fprintf (stderr, "ERROR[line %d]: ", yylineno);
   vfprintf (stderr, format, ap);
   va_end (ap);
-  exit (1);
+  // exit (1);
+  return YYERRCODE;
 }
 
 int
-bng_parse (const char* script_name)
+bng_compile (FILE *in_fp, FILE *out_fp, const char *script_name)
 {
-  //  __script_name = script_name;
-  yyparse ();
+  extern FILE *yyin, *yyout;
+  yyin = in_fp;
+  yyout = out_fp;
+  __script_name = script_name; /* Used by yyerror to relate error messages to script */
 
+  if (yyparse () != 0)
+    return (1);
   return (0);
 }
 
@@ -194,7 +198,7 @@ bng_parse (const char* script_name)
 int
 main (void)
 {
-  bng_parse ("test.bng");
+  bng_compile (stdin, stdout, "test.bng");
   return 0;
 }
 

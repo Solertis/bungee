@@ -19,9 +19,7 @@
 */
 %x bstring bmlstring bgroupname brulename brulecondt
 %option yylineno noyywrap warn
-/* %option bison-bridge bison-locations */
 /* %option debug */
-/* %option   8bit reentrant */
 
 %{
 #include <string.h>
@@ -42,11 +40,12 @@ int yycolumn = 1;
 
 static inline char _input_ch (void) __attribute__ ((unused));
 static unsigned int _get_indent_len (char *stmt, int len) __attribute__ ((unused));
-static void _eat_up_spaces (void) __attribute__ ((unused));
+static int _eat_up_spaces (void) __attribute__ ((unused));
 static inline void _print_token (enum yytokentype val) __attribute__ ((unused));
 
 static unsigned char slstring_type='\0', mlstring_type='\0';
 unsigned long sl_start, ml_start;
+static unsigned char _begin_found, _input_found, _end_found;
 %}
 
 %%
@@ -99,7 +98,7 @@ unsigned long sl_start, ml_start;
     }
   <<EOF>> { /* Unterminated quote */
     if (sl_start != 0)
-      yyerror ("ERROR: Unterminated quote in line %ld", sl_start);
+      return yyerror ("ERROR: Unterminated quote in line %ld", sl_start);
   }
 }
 
@@ -143,24 +142,34 @@ unsigned long sl_start, ml_start;
   }
   <<EOF>> { /* Unterminated quote */
     if (ml_start != 0)
-      yyerror ("ERROR: Unterminated quote in line %ld", ml_start);
+      return yyerror ("ERROR: Unterminated quote in line %ld", ml_start);
   }
 }
 
 ^(BEGIN[ \t]*\:) { /* BEGIN: block */
+  if (_begin_found)
+    return yyerror ("Duplicate BEGIN section found.\n");
+  _begin_found=1;
+
   BRETURN (TBEGIN);
 }
 
 [ \t]+BEGIN[ \t]*\: { /* Error Case */
-  yyerror ("BEGIN keyword should start at the beginning of line.\n");
+  ECHO;
+  return yyerror ("BEGIN keyword should start at the beginning of line.\n");
 }
 
 ^(INPUT[ \t]*\:) { /* INPUT: block */
+  if (_input_found)
+    return yyerror ("Duplicate INPUT section found.\n");
+  _input_found=1;
+
   BRETURN (TINPUT);
 }
 
 [ \t]+INPUT[ \t]*\: { /* Error Case */
-  yyerror ("INPUT keyword should start at the beginning of line.\n");
+  ECHO;
+  return yyerror ("INPUT keyword should start at the beginning of line.\n");
 }
 
 ^(GROUP) {
@@ -185,7 +194,8 @@ unsigned long sl_start, ml_start;
 }
 
 [ \t]+GROUP[ \t]+ { /* Error Case */
-  yyerror ("GROUP keyword should start at the beginning of line.\n");
+  ECHO;
+  return yyerror ("GROUP keyword should start at the beginning of line.\n");
 }
 
 RULE { /* Rule Keyword */
@@ -201,6 +211,12 @@ RULE { /* Rule Keyword */
     BEGIN (brulecondt);
     BRETURN (TRULE_NAME);
   }
+  \: {
+    yyless (0);
+    yylval.string = '\0';
+    BEGIN (brulecondt);
+    BRETURN (TRULE_NAME);
+  }
 }
 
 <brulecondt>{
@@ -213,17 +229,22 @@ RULE { /* Rule Keyword */
 }
 
 ^([ \t]+RULE[ \t]+) { /* Error Case */
-  yyerror ("RULE keyword should start at the beginning of line.\n");
+  ECHO;
+  return yyerror ("RULE keyword should start at the beginning of line.\n");
 }
 
 ^(END[ \t]*\:) { /* END: block */
+  if (_end_found)
+    return yyerror ("Duplicate END section found.\n");
+  _end_found=1;
+
   BRETURN (TEND);
 }
 
 [ \t]+END[ \t]*\: { /* Error Case */
-  yyerror ("END keyword should start at the beginning of line.\n");
+  ECHO;
+  return yyerror ("END keyword should start at the beginning of line.\n");
 }
-
 
 \$\* { /* All field values in a list. */
   fprintf(yyout, "_BNG_GLOBALS.items()");
@@ -276,7 +297,7 @@ _input_ch (void)
   return input ();
 }
 
-static void
+static int
 _eat_up_spaces (void)
 {
   register int ch;
@@ -286,13 +307,14 @@ _eat_up_spaces (void)
       if ((ch == ' ') || (ch == '\t'))
 	  continue;
       else if (ch == EOF)
-	  yyerror ("Unexpected end of file while eating spaces.\n");
+	return yyerror ("Unexpected end of file while eating spaces.\n");
       else
 	{
 	  unput (ch);
 	  break;
 	}
     }
+  return 0;
 }
 
 static unsigned int

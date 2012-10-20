@@ -17,3 +17,6 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 */
+
+// int bng_compile (const char *script_flename, const char *output_filename);
+int bng_compile (FILE *script_fp, FILE *output_fp, const char *script_name);
