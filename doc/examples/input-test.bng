@@ -11,7 +11,7 @@ def INPUT():
         return None
 
     count = count+1
-    return ({'count':count})
+    return {'count':count}
 
 def END():
     print("Bye Bye!")

@@ -25,7 +25,7 @@ limitations under the License.
 #include "local-defs.h"
 #include "logger.h"
 
-static PyObject *mod_bungee; /* hold a reference bungee module imported by mod_bungee_init */
+static PyObject *mod_bungee; /* hold a reference BUNGEE module imported by mod_bungee_init */
 
 /************* BUNGEE PRIMITIVES ***************/
 static PyObject* emb_bng_version (PyObject *self, PyObject *args);
@@ -36,12 +36,14 @@ static PyMethodDef BungeeMethods[] = {
   {NULL, NULL, 0, NULL}
 };
 
+/* Take no argument. Returns current PACKAGE_VERSION as unicode string */
 static PyObject*
 emb_bng_version (PyObject *self, PyObject *args)
 {
+  /* string after : is used as function name in error messages */
   if(!PyArg_ParseTuple(args, ":version"))
     {
-      BNG_WARN (_("Error parsing version() tuple"));
+      BNG_DBG (_("Error parsing BUNGEE.Version() tuple"));
       return NULL;
     }
   return PyUnicode_FromString (VERSION);
