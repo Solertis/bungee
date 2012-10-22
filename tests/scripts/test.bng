@@ -1,0 +1,37 @@
+# this is comment
+
+BEGIN:
+  print("Hello BEGIN1")
+  print("Hello BEGIN2") # this is comment
+
+INPUT:#this is also comment
+    print("Hello INPUT1")
+    print("Hello\# INPUT2")
+    $meta=FILE.META()
+    print("$name=", $name, " $abcd=", $abcd)
+
+'''
+this is also comment
+'''
+RULE CopyCheck COPYRIGHT.INFRINGED($meta):
+  print($meta['filename'])
+
+GROUP MyGrp RULE MyRule1 True:
+  for val in $*
+    print(val)
+
+GROUP MyGroup RULE MyRule2 True:
+  print($abcd)
+
+RULE MyRule1 asf:
+   print($abcd)
+   print("DEBUG")
+
+GROUP NameMatch RULE MyRuleX $abcd=="John":
+  print($abcd)
+
+END:
+   # this is test
+   print("Hello END1")
+   print("Hello END2")
+   print("Value is", $abcd);
