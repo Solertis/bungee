@@ -42,6 +42,30 @@ shell_help (const gchar *path)
 }
 
 static gint
+shell_compile (const gchar *path)
+{
+  gint status = 0;
+  if (!path || !path[0])
+    {
+      g_print (_("File name required.\n"));
+      return 1;
+    }
+
+  status = bng_compile_file (path, stderr);
+  if (status == 0)
+    {
+      if (g_str_has_suffix (path, ".bng"))
+	g_printf ("%s compiled to %so\n", path, path);
+      else
+	g_printf ("%s compiled to %s.bngo\n", path, path);
+    }
+
+  g_print (_("completed with status [%d].\n"), status);
+
+  return status;
+}
+
+static gint
 shell_eval (const gchar *path)
 {
   gint status = 0;
@@ -72,7 +96,7 @@ shell_load (const gchar *path)
       status = 1;
       g_print (_("File name required.\n"));
     }
-  return (status);
+  return status;
 }
 
 static gint
@@ -107,6 +131,10 @@ shell_interpreter (const gchar *cmd_line)
   else if (g_ascii_strcasecmp (cmd, "help") == 0)
     {
       shell_help (args);
+    }
+  else if (g_ascii_strcasecmp (cmd, "compile") == 0)
+    {
+      shell_compile (args);
     }
   else if (g_ascii_strcasecmp (cmd, "eval") == 0)
     {

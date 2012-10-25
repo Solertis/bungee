@@ -10,8 +10,9 @@ AM_SILENT_RULES
 dnl create a config.h file (Automake will add -DHAVE_CONFIG_H)
 AM_CONFIG_HEADER(config.h)
 AC_GNU_SOURCE
-AM_GNU_GETTEXT
-BISON_I18N
+dnl AM_GNU_GETTEXT
+dnl AM_GNU_GETTEXT_VERSION
+dnl BISON_I18N
 
 AC_SUBST(VERSION)
 ISODATE=`date +%Y-%m-%d`
@@ -45,6 +46,18 @@ AC_PROG_CC
 # AC_PROG_LIBTOOL.
 # LT_INIT([disable-shared])
 AC_PROG_LIBTOOL
+
+# Flex Check
+AC_PROG_LEX
+if test  "x${LEX}" != "xflex"; then
+   AC_MSG_ERROR([GNU Flex required to build Bungee.])
+fi
+
+# Bison Check
+AC_PROG_YACC
+if test "x${YACC}" != "xbison -y";  then
+   AC_MSG_ERROR([GNU Bison required to build Bungee.])
+fi
 
 dnl Checks for header files.
 AC_CHECK_HEADERS(unistd.h sys/param.h sys/time.h time.h sys/mkdev.h sys/sysmacros.h string.h memory.h fcntl.h dirent.h sys/ndir.h ndir.h alloca.h locale.h )

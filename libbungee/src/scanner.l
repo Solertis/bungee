@@ -1,5 +1,5 @@
 /*
-  bungee-parser.l: bungee script flex scanner
+  scanner.l: bungee's flex scanner
 
   This file is part of Bungee.
 
@@ -24,8 +24,12 @@
 %{
 #include <string.h>
 #include <stdlib.h>
-#include "bungee-parser.h"
-#include "bungee-parser.tab.h"
+
+#ifdef _DEBUG_PARSER /* Support hand-compiled testing for quick debugging */
+#include "parser.tab.h"
+#else
+#include "parser.h" /* Automake auto-generates parser.h and not default style parser.tab.h */
+#endif
 
 /* Uncomment this line instead if you want to DEBUG */
 //#define BRETURN(val) do { _print_token (val); return val; } while (0)
@@ -44,7 +48,7 @@ static int _eat_up_spaces (void) __attribute__ ((unused));
 static inline void _print_token (enum yytokentype val) __attribute__ ((unused));
 
 static unsigned char slstring_type='\0', mlstring_type='\0';
-unsigned long sl_start, ml_start;
+static unsigned long sl_start, ml_start;
 static unsigned char _begin_found, _input_found, _end_found;
 %}
 
@@ -247,19 +251,19 @@ RULE { /* Rule Keyword */
 }
 
 \$\* { /* All field values in a list. */
-  fprintf(yyout, "_BNG_GLOBALS.items()");
+  fprintf(yyout, "GLOBALS.items()");
 }
 
 \$\@ { /* All field symbols in a list. */
-  fprintf(yyout, "_BNG_GLOBALS.keys()");
+  fprintf(yyout, "GLOBALS.keys()");
 }
 
 \$\# { /* Number of fields. */
-  fprintf(yyout, "len(_BNG_GLOBALS.keys())");
+  fprintf(yyout, "len(GLOBALS.keys())");
 }
 
 \$[a-zA-Z_][a-zA-Z_0-9]+ { /* Global variable */
-  fprintf(yyout, "_BNG_GLOBALS['%s']", yytext);
+  fprintf(yyout, "GLOBALS['%s']", yytext);
 }
 
 [ \t]+ ECHO;
@@ -329,6 +333,15 @@ _get_indent_len (char *stmt, int len)
 	return indent_len;
     }
   return indent_len;
+}
+
+/* Initialize flex scanner. */
+void
+_bng_scanner_init (void)
+{
+  slstring_type = mlstring_type='\0';
+  sl_start = ml_start = 0;
+  _begin_found = _input_found = _end_found = 0;
 }
 
 #if 0
