@@ -92,7 +92,8 @@ import_mod_bungee (void)
   return (_mod_bungee);
 }
 
-/* Register BUNGEE module to standard modules table. This function should be called before PyInitialize(). */
+/* Register BUNGEE module to standard modules table.
+   THIS FUNCTION SHOULD BE CALLED BEFORE PyInitialize(). */
 gint
 mod_bungee_register (void)
 {
