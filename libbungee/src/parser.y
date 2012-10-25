@@ -1,5 +1,5 @@
 /*
-  bungee-parser.y: bungee script bison parser
+  parser.y: bungee's bison parser
 
   This file is part of Bungee.
 
@@ -19,15 +19,19 @@
 */
 
 /* C declarations */
+%initial-action {
+#ifndef _DEBUG_PARSER
+  bindtextdomain ("bison-runtime", BISON_LOCALEDIR);
+#endif
+}
 
 %code top {
+#include <libintl.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdarg.h>
 #include <stdlib.h>
 #include <errno.h>
-
-#include "bungee-parser.h"
 }
 
 %code provides {
@@ -36,6 +40,10 @@
 
 /* Error handling routine */
 int yyerror (const char *format, ...) __attribute__ ((format (gnu_printf, 1, 2)));
+
+/* Compile .bng source to .bngo format */
+int bng_compile (FILE *script_fp, const char *script_name, FILE *output_fp, FILE *err_fp);
+
 }
 
 %code requires {
@@ -51,13 +59,15 @@ typedef struct YYLTYPE {
 }
 
 %code {
-int yylex ();
+extern int yylex ();
+extern FILE *yyin, *yyout;
+FILE *yyerr;
 
 #define XFREE(ptr) if (ptr) { free (ptr); ptr = NULL;}
 #define _PAD_SPACES(num) do { int i; for (i=1; i<num; i++) putchar (' '); } while (0)
 
 /* Current yyin script source */
-const char *__script_name=NULL;
+static const char *__script_name=NULL;
 extern int yylineno;
 }
 
@@ -83,24 +93,20 @@ extern int yylineno;
 
 /* Grammar Rules */
 %%
-program: begincb inputcb rules endcb /* valid case */
-| begincb rules endcb { yyerror ("No INPUT section found after BEGIN section.\n"); YYABORT; }
-| begincb inputcb endcb { yyerror ("No RULEs found after INPUT section.\n"); YYABORT; }
-| begincb endcb { yyerror ("No INPUT section or RULEs found.\n"); YYABORT; }
+program: | program section
+section: begincb | inputcb | rule | endcb
 
-begincb: /* Optional */
-| TBEGIN
+begincb:
+TBEGIN
 {
-  printf ("def BEGIN():");
+  fprintf (yyout, "def BEGIN():");
 }
 
 inputcb:
 TINPUT
 {
-  printf ("def INPUT():");
+  fprintf (yyout, "def INPUT():");
 }
-
-rules: rule | rules rule
 
 rule: TRULE TRULE_NAME TRULE_CONDT
 {
@@ -111,11 +117,11 @@ rule: TRULE TRULE_NAME TRULE_CONDT
     }
 
   if ($3 == NULL)
-    printf ("RULES.APPEND('DEFAULT', '%s', lambda: True, '_RULE_%s()'))\n", $2, $3);
+    fprintf (yyout, "RULES.APPEND('DEFAULT', '%s', lambda: True, '_RULE_%s()'))\n", $2, $3);
   else
-    printf ("RULES.APPEND('DEFAULT', '%s', lambda: %s, '_RULE_%s()'))\n", $2, $3, $3);
+    fprintf (yyout, "RULES.APPEND('DEFAULT', '%s', lambda: %s, '_RULE_%s()'))\n", $2, $3, $3);
 
-  printf ("def _RULE_%s():", $2);
+  fprintf (yyout, "def _RULE_%s():", $2);
 
   XFREE ($2);
   XFREE ($3);
@@ -141,21 +147,21 @@ rule: TRULE TRULE_NAME TRULE_CONDT
     }
 
   if ($5 == NULL)
-    printf ("RULES.APPEND('%s', '%s', '''True''', '_RULE_%s()'))\n", $2, $4, $5);
+    fprintf (yyout, "RULES.APPEND('%s', '%s', '''True''', '_RULE_%s()'))\n", $2, $4, $5);
   else
-    printf ("RULES.APPEND('%s', '%s', '''%s''', '_RULE_%s()'))\n", $2, $4, $5, $5);
+    fprintf (yyout, "RULES.APPEND('%s', '%s', '''%s''', '_RULE_%s()'))\n", $2, $4, $5, $5);
 
-  printf ("def _RULE_%s():", $4);
+  fprintf (yyout, "def _RULE_%s():", $4);
 
   XFREE ($2);
   XFREE ($4);
   XFREE ($5);
 }
 
-endcb: /* Optional */
-| TEND
+endcb:
+TEND
 {
-  printf ("def END():");
+  fprintf (yyout, "def END():");
 }
 | error
 {
@@ -167,38 +173,68 @@ endcb: /* Optional */
 int
 yyerror (const char *format, ...)
 {
-  extern int yylineno;
-  va_list ap;
-  va_start (ap, format);
+  if (!format)
+    return YYERRCODE;
 
-  if (__script_name && __script_name[0])
-    fprintf (stderr, "ERROR[%s:%d]: ", __script_name, yylineno);
-  else
-    fprintf (stderr, "ERROR[line %d]: ", yylineno);
-  vfprintf (stderr, format, ap);
-  va_end (ap);
+  if (yyerr)
+    {
+      extern int yylineno;
+      va_list ap;
+      va_start (ap, format);
+
+      if (__script_name && __script_name[0])
+	fprintf (yyerr, "ERROR[%s:%d]: ", __script_name, yylineno);
+      else
+	fprintf (yyerr, "ERROR[line %d]: ", yylineno);
+      vfprintf (yyerr, format, ap);
+      va_end (ap);
+    }
   // exit (1);
   return YYERRCODE;
 }
 
 int
-bng_compile (FILE *in_fp, FILE *out_fp, const char *script_name)
+bng_compile (FILE *script_fp, const char *script_name, FILE *output_fp, FILE *err_fp)
 {
-  extern FILE *yyin, *yyout;
-  yyin = in_fp;
-  yyout = out_fp;
-  __script_name = script_name; /* Used by yyerror to relate error messages to script */
+  int status;
 
-  if (yyparse () != 0)
-    return (1);
-  return (0);
+  extern void _bng_scanner_init (void);
+  _bng_scanner_init (); /* (Re)Initializes Flex global variables. */
+
+  if (script_fp == NULL)
+    yyin = stdin;
+  else
+    {
+      yyin = script_fp;
+      // extern yyrestart (yyin); /* Just to be on the safer side. */
+    }
+
+  if (output_fp == NULL)
+    yyout = stdout;
+  else
+    yyout = output_fp;
+
+  yyerr = err_fp; /* yyerr is declared by parser.y and not flex. */
+
+  __script_name = script_name; /* Used by yyerror to relate error messages to script. */
+
+  if (yyparse () == 0)
+    status = 0;
+  else
+    status = 1;
+
+  yyin = yyout = yyerr = (FILE *) NULL;
+  __script_name = NULL;
+
+  return status;
 }
 
 #ifdef _DEBUG_PARSER
 int
 main (void)
 {
-  bng_compile (stdin, stdout, "test.bng");
+  // bng_compile (NULL, NULL, NULL, NULL);
+  bng_compile (stdin, NULL, stdout, stderr);
   return 0;
 }
 

@@ -1,15 +1,19 @@
+## Any changes to scanner.l and parser.y can be tested standalone using this Makefile.
+#  make -f Makefile.parser clean && make -f Makefile.parser run
+
 all: parser
 
-lex.yy.c: bungee-parser.l
-	-flex bungee-parser.l
+lex.yy.c: scanner.l
+	-flex scanner.l
 
-bungee-parser.tab.c: bungee-parser.y
-	-bison -v -d bungee-parser.y
+parser.tab.c: parser.y
+	-bison -d -v parser.y
 
-parser: bungee-parser.tab.c lex.yy.c
-	-gcc -Wall -D_DEBUG_PARSER -D_GNU_SOURCE -o parser bungee-parser.tab.c lex.yy.c
+parser: parser.tab.c lex.yy.c
+	-gcc -Wall -D_DEBUG_PARSER -D_GNU_SOURCE -o parser parser.tab.c lex.yy.c
 clean:
-	-rm -f parser lex.yy.c bungee-parser.tab.c bungee-parser.tab.h lex.yy.o bungee-parser.output
+	-rm -f parser lex.yy.c parser.tab.c parser.tab.h lex.yy.o parser.output
 
 run: parser
-	-./parser < test.bng
+	-./parser < /tmp/test.bng
+	#-./parser < ../../tests/scripts/test.bng

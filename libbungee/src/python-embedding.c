@@ -24,6 +24,7 @@ limitations under the License.
 
 #include "local-defs.h"
 #include "logger.h"
+#include "python-globals.h"
 #include "python-module-bungee.h"
 #include "python-embedding.h"
 
@@ -91,15 +92,23 @@ bng_py_init (void)
 {
   if (mod_bungee_register () != 0)
     {
-      BNG_WARN (_(PACKAGE" registration failed"));
+      BNG_ERR (_(PACKAGE" registration failed."));
       return (-1);
     }
 
   Py_Initialize ();
 
-  if (mod_bungee_init() != 0)
+  globals_init ();
+
+  if (globals_init() != 0)
     {
-      BNG_WARN (_("Unable to initialize BUNGEE module"));
+      BNG_ERR (_("Unable to initialize GLOBALS dictionary."));
+      return (-1);
+    }
+
+  if (mod_bungee_init () != 0)
+    {
+      BNG_ERR (_("Unable to initialize BUNGEE module."));
       return (-1);
     }
 
@@ -109,9 +118,15 @@ bng_py_init (void)
 gint
 bng_py_fini (void)
 {
-  if (mod_bungee_fini() != 0)
+  if (mod_bungee_fini () != 0)
     {
       BNG_WARN (_("Unable to uninitialize BUNGEE module"));
+      return (-1);
+    }
+
+  if (globals_fini () != 0)
+    {
+      BNG_ERR (_("Unable to uninitialize GLOBALS dictionary."));
       return (-1);
     }
 

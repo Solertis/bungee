@@ -1,17 +1,13 @@
-count = 0
-
+seed = 1
 def BEGIN():
     print("Hello Begin")
 
 def INPUT():
-    global count
-    print("In the guts..", count)
+    $count = seed + $count + 1
+    print("In the guts..", $count)
 
-    if count == 10:
+    if $count == 10:
         return None
-
-    count = count+1
-    return {'count':count}
 
 def END():
     print("Bye Bye!")

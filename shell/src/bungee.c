@@ -32,6 +32,8 @@ limitations under the License.
 const char *program_bug_address = PACKAGE_BUGREPORT;
 
 static gboolean show_version (const gchar *option_name, const gchar *value, gpointer data, GError **error);
+static gboolean compiler (const gchar *option_name, const gchar *value, gpointer data, GError **error);
+
 /* Rest of unparsed strings are stored here. How ever we only support
    one string i.e. script filename. */
 static gchar **rest_args = NULL;
@@ -48,19 +50,27 @@ static gchar *bng_script = NULL;  /* Execute this bungee script  */
 static GOptionEntry opt_entries[] = {
   { G_OPTION_REMAINING, 0, 0, G_OPTION_ARG_STRING_ARRAY, &rest_args,
     NULL, NULL },
+
   { "version", 'v', G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, show_version,
     N_("Print version information"), NULL },
+
   { "startup", 0, 0, G_OPTION_ARG_FILENAME, &startup_script,
-    N_("Use this startup FILE instead"), "FILE"},
+    N_("Use this startup FILE instead"), "FILE" },
+
   { "log", 'l', 0, G_OPTION_ARG_STRING_ARRAY, &log_devices,
-    N_("Send log messages to these targets"), "[stdout|*stderr|syslog|FILE|zmq]"},
+    N_("Send log messages to these targets"), "[stdout|*stderr|syslog|FILE|zmq]" },
+
   { "log-level", 'L', 0, G_OPTION_ARG_STRING, &log_level,
-    N_("Set minium log level"), "[fatal|error|*warning|info|debug]"},
+    N_("Set minium log level"), "[fatal|error|*warning|info|debug]" },
+
+  { "compile", 'c', 0, G_OPTION_ARG_CALLBACK, compiler,
+    N_("Compile .bng source to .bngo"), "FILE" },
+
   { "output", 'o', 0, G_OPTION_ARG_STRING_ARRAY, &msg_devices,
-    N_("Send console messages to these targets"), "[*stdout|stderr|syslog|FILE|zmq]"},
+    N_("Send console messages to these targets"), "[*stdout|syslog|FILE|zmq]" },
+
   { NULL }
 };
-
 /* Show the version number and copyright information.  */
 static gboolean show_version (const gchar *option_name,
 			      const gchar *value,
@@ -69,13 +79,32 @@ static gboolean show_version (const gchar *option_name,
   /* Print in small parts whose localizations can hopefully be copied
      from other programs.  */
   g_print (PACKAGE" "VERSION"\n");
-  g_print ("Big data processor inspired by AWK and Spreadsheet");
+  g_print ("Big data processor inspired by AWK");
   g_print (_("Copyright (C) %s %s\n"), "2012", "Red Hat, Inc.");
   g_print (_("License: Apache License, Version 2.0\n"
 	     "This is free software: you are free to change and redistribute it. "
 	     "There is NO WARRANTY, to the extent permitted by law.\n\n"));
   g_print (_("Written by %s.\n"), "Anand Babu (AB) Periasamy");
   g_print (_("URL: %s\n"), PACKAGE_URL);
+
+  exit (0);
+}
+
+static gboolean compiler (const gchar *option_name,
+			  const gchar *value,
+			  gpointer data, GError **error)
+{
+  gint status;
+  status = bng_compile_file (value, stderr);
+  if (status == 0)
+    {
+      if (g_str_has_suffix (value, ".bng"))
+	g_printf ("%s compiled to %so\n", value, value);
+      else
+	g_printf ("%s compiled to %s.bngo\n", value, value);
+    }
+  else
+    g_printf (_("ERROR: Compilation failed. Error(s) in %s.\n"), value);
 
   exit (0);
 }
@@ -92,7 +121,7 @@ main (int argc, char **argv)
   /* Glib based option parsing */
   context = g_option_context_new (_("[FILE]"));
 
-  g_option_context_set_summary (context, N_("Bungee is a big data processor inspired by AWK and Spreadsheet."));
+  g_option_context_set_summary (context, N_("Bungee is a big data processor inspired by AWK."));
   g_option_context_set_description (context, N_("For more information, please visit http://www.bungeeproject.org/"));
   g_option_context_add_main_entries (context, opt_entries, PACKAGE);
 

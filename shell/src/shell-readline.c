@@ -35,7 +35,7 @@ limitations under the License.
 static gchar *
 shell_completion_generator (const gchar *text, gint state)
 {
-  const gchar *commands [] = {"help", "quit", "eval", "load", "run", NULL};
+  const gchar *commands [] = {"help", "compile", "quit", "eval", "load", "run", NULL};
   static gint list_index, len;
   const gchar *name;
 

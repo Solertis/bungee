@@ -1,5 +1,5 @@
 /*
-bungee.h: main bungee header file
+python-globals.c: Bungee python global variables
 
 This file is part of Bungee.
 
@@ -18,28 +18,29 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-
-#ifndef _BUNGEE_H
-#define _BUNGEE_H
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
+/* Python.h should be the first header to include, even before system headers */
 #include <Python.h>
-#include <stdio.h>
-#include <stdint.h>
-#include <inttypes.h>
 #include <glib.h>
 
+#include "local-defs.h"
 #include "logger.h"
-#include "parser-interface.h"
-#include "python-embedding.h"
-#include "parser-interface.h"
-#include "libbungee.h"
 
-#ifdef __cplusplus
+/* hold a reference GLOBALS dictionary. All $variables will be stored in this dictionary. */
+static PyObject *_globals;
+
+gint
+globals_init ()
+{
+  _globals = PyDict_New ();
+  if ((_globals == NULL) || !(PyDict_CheckExact (_globals)))
+    return (-1);
+
+  return (0);
 }
-#endif
 
-#endif /* _BUNGEE_H */
+gint
+globals_fini ()
+{
+  Py_DECREF (_globals);
+  return (0);
+}

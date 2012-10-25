@@ -30,6 +30,7 @@ limitations under the License.
 #include "local-defs.h"
 #include "logger.h"
 #include "python-embedding.h"
+#include "parser-interface.h"
 #include "libbungee.h"
 
 /* Evaluate bungee code */
@@ -40,13 +41,13 @@ bng_eval (const gchar *code)
     {
       BNG_DBG (_("Invalid argument, code is NULL"));
       errno = EINVAL;
-      return (-1);
+      return 1;
     }
 
   if (PyRun_SimpleString (code) == 0)
-    return (0);
+    return 0;
   else
-    return (-1);
+    return 1;
 }
 
 /*************************/
@@ -85,7 +86,28 @@ bng_load (const gchar *script_name)
       goto END;
     }
 
-  status = PyRun_SimpleFileEx (script_fp, _script_name, TRUE);
+  FILE *out_fp = tmpfile ();
+
+  if (out_fp == NULL)
+    {
+      BNG_DBG (_("Unable to create temporary file, %s"), strerror (errno));
+      status = 1;
+      goto END;
+    }
+
+  if (bng_compile (script_fp, _script_name, out_fp, stderr) != 0)
+    {
+      BNG_DBG (_("Failed to compile %s script, %s"), _script_name, strerror (errno));
+      status = 1;
+      goto END;
+    }
+
+  fclose (script_fp); /* Source no longer needed. */
+  rewind (out_fp); /* Rewind from compiler output to execute the script. */
+
+  status = PyRun_SimpleFileEx (out_fp, _script_name, TRUE);
+  if (status != 0)
+    BNG_DBG (_("Failed to execute %s script"), _script_name);
 
  END:
   wordfree (&exp_script_name);
@@ -99,21 +121,18 @@ bng_load (const gchar *script_name)
 gint
 bng_init (bng_console_t msg, bng_console_t log, bng_log_level_t log_level)
 {
-  /* Move it to bison parser init later */
-  bindtextdomain ("bison-runtime", BISON_LOCALEDIR);
-
   bng_console_init (msg, log, log_level);
 
   if (PY_MAJOR_VERSION < 3)
     {
       BNG_ERR (_("Requires Python version 3 or above"));
       errno = ENOPKG;
-      return (-1);
+      return 1;
     }
 
   bng_py_init ();
 
-  return (0);
+  return 0;
 }
 
 /***************************/
@@ -125,7 +144,7 @@ bng_fini (void)
   bng_py_fini ();
   Py_Finalize ();
 
-  return (0);
+  return 0;
 }
 
 
@@ -151,7 +170,7 @@ bng_engine (void)
       if (py_val == NULL)
 	{
 	  PyErr_Print ();
-	  return (-1);
+	  return 1;
 	}
 
       /* No more data to process. Reached end of data source. */
@@ -167,7 +186,7 @@ bng_engine (void)
 	  PyErr_SetString (PyExc_TypeError, _("INPUT returned bad data. Expecting a dictionary type."));
 	  PyErr_Print ();
 	  errno = EINVAL;
-	  return (-1);
+	  return 1;
 	}
       Py_XDECREF (py_val);
     }
@@ -176,7 +195,7 @@ bng_engine (void)
   py_val = bng_py_hook_call (BNG_HOOK_END, NULL);
   Py_XDECREF (py_val);
 
-  return (0);
+  return 0;
 }
 
 /*********************************/
@@ -190,14 +209,14 @@ bng_run (const gchar *bng_script)
   if (status != 0)
   {
     BNG_DBG (_("Error loading "PACKAGE" script [%s]"), bng_script);
-    return (-1);
+    return 1;
   }
 
   if (bng_engine () != 0)
   {
     BNG_DBG (_("Error executing "PACKAGE" script [%s]"), bng_script);
-    return (-1);
+    return 1;
   }
 
-  return (0);
+  return 0;
 }

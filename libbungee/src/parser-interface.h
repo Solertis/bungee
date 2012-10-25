@@ -1,5 +1,5 @@
 /*
-  bungee-parser.h: common definitions for bungee script flex and bison parser
+  parser-interface.h: Interface to bison parser
 
   This file is part of Bungee.
 
@@ -18,5 +18,29 @@
   limitations under the License.
 */
 
-// int bng_compile (const char *script_flename, const char *output_filename);
-int bng_compile (FILE *script_fp, FILE *output_fp, const char *script_name);
+#ifndef _PARSER_INTERFACE_H
+#define _PARSER_INTERFACE_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* Compile Bungee .bng script to .bngo format.
+
+   script_fp, output_fp and err_fp are FILE * type.
+   It means you can pass stdin, stdout and stderr here.
+
+   script_name is only used for log messages.
+
+   NULL err_fp disables bison error messages. */
+int bng_compile (FILE *script_fp, const char *script_name, FILE *output_fp, FILE *err_fp);
+
+/* Compile Bungee [file].bng script to [file].bngo output.
+   NULL err_fp disables bison error messages. Debug logs will work how ever. */
+gint bng_compile_file (const gchar *script_name, FILE *err_fp);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* _PARSER_INTERFACE_H */
