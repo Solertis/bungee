@@ -35,6 +35,19 @@ globals_init ()
   if ((_globals == NULL) || !(PyDict_CheckExact (_globals)))
     return (-1);
 
+  PyObject *_mod_main; /* __main__ module */
+
+  /* Barrowed reference to main module*/
+  _mod_main = PyImport_AddModule ("__main__");
+  if (_mod_main == NULL)
+    {
+      BNG_WARN (_("Could not access __main__ module"));
+      return (1);
+    }
+
+  /* Make our "_globals" dictionary available to Python's main. */
+  PyObject_SetAttrString (_mod_main, "GLOBALS", _globals);
+
   return (0);
 }
 
