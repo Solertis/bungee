@@ -250,20 +250,24 @@ RULE { /* Rule Keyword */
   return yyerror ("END keyword should start at the beginning of line.\n");
 }
 
+\$\$ { /* Dictionary of all BUNGEE global variables. */
+  fprintf(yyout, "BUNGEE.GLOBALS");
+}
+
 \$\* { /* All field values in a list. */
-  fprintf(yyout, "GLOBALS.items()");
+  fprintf(yyout, "BUNGEE.GLOBALS.items()");
 }
 
 \$\@ { /* All field symbols in a list. */
-  fprintf(yyout, "GLOBALS.keys()");
+  fprintf(yyout, "BUNGEE.GLOBALS.keys()");
 }
 
 \$\# { /* Number of fields. */
-  fprintf(yyout, "len(GLOBALS.keys())");
+  fprintf(yyout, "len(BUNGEE.GLOBALS)");
 }
 
 \$[a-zA-Z_][a-zA-Z_0-9]+ { /* Global variable */
-  fprintf(yyout, "GLOBALS['%s']", yytext);
+  fprintf(yyout, "BUNGEE.GLOBALS['%s']", yytext+1);
 }
 
 [ \t]+ ECHO;

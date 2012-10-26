@@ -29,30 +29,30 @@ limitations under the License.
 static PyObject *_globals;
 
 gint
-globals_init ()
+bungee_globals_init ()
 {
   _globals = PyDict_New ();
   if ((_globals == NULL) || !(PyDict_CheckExact (_globals)))
     return (-1);
 
-  PyObject *_mod_main; /* __main__ module */
+  PyObject *mod_bungee; /* __main__ module */
 
   /* Barrowed reference to main module*/
-  _mod_main = PyImport_AddModule ("__main__");
-  if (_mod_main == NULL)
+  mod_bungee = PyImport_AddModule ("BUNGEE");
+  if (mod_bungee == NULL)
     {
-      BNG_WARN (_("Could not access __main__ module"));
+      BNG_WARN (_("Could not access BUNGEE module"));
       return (1);
     }
 
-  /* Make our "_globals" dictionary available to Python's main. */
-  PyObject_SetAttrString (_mod_main, "GLOBALS", _globals);
+  /* Make our "_globals" dictionary available through BUNGEE module. */
+  PyObject_SetAttrString (mod_bungee, "GLOBALS", _globals);
 
   return (0);
 }
 
 gint
-globals_fini ()
+bungee_globals_fini ()
 {
   Py_DECREF (_globals);
   return (0);

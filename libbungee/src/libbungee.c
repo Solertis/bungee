@@ -174,20 +174,12 @@ bng_engine (void)
 	}
 
       /* No more data to process. Reached end of data source. */
-      if (py_val == Py_None)
+      if (py_val != Py_True)
 	{
 	  Py_XDECREF (py_val);
 	  break;
 	}
 
-      if (!PyDict_Check(py_val))
-	{
-	  Py_XDECREF (py_val);
-	  PyErr_SetString (PyExc_TypeError, _("INPUT returned bad data. Expecting a dictionary type."));
-	  PyErr_Print ();
-	  errno = EINVAL;
-	  return 1;
-	}
       Py_XDECREF (py_val);
     }
 

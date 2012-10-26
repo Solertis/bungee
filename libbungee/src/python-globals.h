@@ -25,8 +25,8 @@ limitations under the License.
 extern "C" {
 #endif
 
-gint globals_init (void);
-gint globals_fini (void);
+gint bungee_globals_init (void);
+gint bungee_globals_fini (void);
 
 #ifdef __cplusplus
 }
