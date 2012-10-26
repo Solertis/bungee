@@ -24,6 +24,7 @@ limitations under the License.
 
 #include "local-defs.h"
 #include "logger.h"
+#include "python-globals.h"
 
 static PyObject *mod_bungee; /* hold a reference BUNGEE module imported by mod_bungee_init */
 
@@ -108,7 +109,17 @@ mod_bungee_init ()
 {
   mod_bungee = import_mod_bungee ();
   if (mod_bungee == NULL)
-    return (-1);
+    {
+      BNG_DBG (_("Unable to import BUNGEE module."));
+      return (-1);
+    }
+
+  if (bungee_globals_init () != 0)
+    {
+      BNG_DBG (_("Unable to initialize GLOBALS dictionary."));
+      return (-1);
+    }
+
   return (0);
 }
 
@@ -116,5 +127,12 @@ gint
 mod_bungee_fini ()
 {
   Py_DECREF (mod_bungee);
+
+  if (bungee_globals_fini () != 0)
+    {
+      BNG_DBG (_("Unable to uninitialize GLOBALS dictionary."));
+      return (-1);
+    }
+
   return (0);
 }
