@@ -266,7 +266,7 @@ RULE { /* Rule Keyword */
   fprintf(yyout, "len(BUNGEE.GLOBALS)");
 }
 
-\$[a-zA-Z_][a-zA-Z_0-9]+ { /* Global variable */
+\$[a-zA-Z_][a-zA-Z_0-9]* { /* Global variable */
   fprintf(yyout, "BUNGEE.GLOBALS['%s']", yytext+1);
 }
 

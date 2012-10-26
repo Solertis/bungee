@@ -1,26 +1,12 @@
-import posix
-import string
+BEGIN:
+  $fd = open("/etc/passwd")
 
-passwd = None
+INPUT:
+  $pwd = $fd.readline()
 
-def BEGIN():
-    global passwd
-    passwd = open('/etc/passwd')
+  if $pwd:
+      print($pwd[:-1])
+      return True
 
-def INPUT():
-    global passwd
-    pwdict = {}
-    pwent = passwd.readline()[:-1].split(':')
-    if len(pwent) == 1:
-        return None
-
-    pwdict['name'] = pwent[0]
-    pwdict['uid'] = pwent[2]
-    pwdict['gid'] = pwent[3]
-    pwdict['home'] = pwent[5]
-    pwdict['shell'] = pwent[6]
-
-    return (pwdict)
-
-def END():
-    print("Bye Bye!")
+END:
+  $fd.close()
