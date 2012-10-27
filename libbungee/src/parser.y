@@ -117,11 +117,11 @@ rule: TRULE TRULE_NAME TRULE_CONDT
     }
 
   if ($3 == NULL)
-    fprintf (yyout, "RULES.APPEND('DEFAULT', '%s', lambda: True, '_RULE_%s()'))\n", $2, $3);
+    fprintf (yyout, "RULES.APPEND('DEFAULT', '%s', lambda: True, '_ATION_%s()'))\n", $2, $2);
   else
-    fprintf (yyout, "RULES.APPEND('DEFAULT', '%s', lambda: %s, '_RULE_%s()'))\n", $2, $3, $3);
+    fprintf (yyout, "RULES.APPEND('DEFAULT', '%s', lambda: %s, '_ACTION_%s()'))\n", $2, $3, $2);
 
-  fprintf (yyout, "def _RULE_%s():", $2);
+  fprintf (yyout, "def _ACTION_%s():", $2);
 
   XFREE ($2);
   XFREE ($3);
@@ -147,11 +147,11 @@ rule: TRULE TRULE_NAME TRULE_CONDT
     }
 
   if ($5 == NULL)
-    fprintf (yyout, "RULES.APPEND('%s', '%s', '''True''', '_RULE_%s()'))\n", $2, $4, $5);
+    fprintf (yyout, "RULES.APPEND('%s', '%s', '''True''', '_ACTION_%s()'))\n", $2, $4, $4);
   else
-    fprintf (yyout, "RULES.APPEND('%s', '%s', '''%s''', '_RULE_%s()'))\n", $2, $4, $5, $5);
+    fprintf (yyout, "RULES.APPEND('%s', '%s', '''%s''', '_ACTION_%s()'))\n", $2, $4, $5, $4);
 
-  fprintf (yyout, "def _RULE_%s():", $4);
+  fprintf (yyout, "def _ACTION_%s():", $4);
 
   XFREE ($2);
   XFREE ($4);

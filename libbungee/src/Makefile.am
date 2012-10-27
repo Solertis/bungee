@@ -9,13 +9,13 @@ AM_YFLAGS = -d
 BUILT_SOURCES = parser.h
 parser_sources = parser.y scanner.l
 
-libbungee_la_SOURCES = libbungee.c logger.c python-embedding.c python-globals.c python-module-bungee.c \
+libbungee_la_SOURCES = libbungee.c logger.c python-embedding.c python-module-bungee.c python-bungee-globals.c \
 	$(parser_sources) parser-interface.c
 
 # public header file that needs to be installed
 include_HEADERS =
 # local header files necessary to build this library
-noinst_HEADERS = bungee.h libbungee.h logger.h local-defs.h python-embedding.h python-globals.h \
-	python-module-bungee.h parser-interface.h
+noinst_HEADERS = bungee.h libbungee.h logger.h local-defs.h python-embedding.h python-module-bungee.h \
+	python-bungee-globals.h parser-interface.h
 
-CLEANFILES = *~
+CLEANFILES = *~ parser.c parser.h scanner.c
