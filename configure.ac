@@ -5,7 +5,7 @@ AC_INIT([Bungee], 0.1.proto0, bungee-dev@bungeeproject.org, , http://www.bungeep
 AC_CONFIG_SRCDIR([shell/src/bungee.c])
 AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE([gnu dist-bzip2 silent-rules])
-AM_SILENT_RULES
+AM_SILENT_RULES(yes)
 
 dnl create a config.h file (Automake will add -DHAVE_CONFIG_H)
 AM_CONFIG_HEADER(config.h)
@@ -40,20 +40,17 @@ AC_CONFIG_FILES([bungee.lsm
 dnl Checks for programs.
 AC_PROG_INSTALL
 AC_PROG_CC
-# Turn off shared libraries during beta-testing, since they
-# make the build process take too long. For release builds, remove
-# disable-shared option or comment LT_INIT line and uncomment
-# AC_PROG_LIBTOOL.
-# LT_INIT([disable-shared])
+
+dnl Check for libtool
 AC_PROG_LIBTOOL
 
-# Flex Check
+# Check for flex
 AC_PROG_LEX
 if test  "x${LEX}" != "xflex"; then
    AC_MSG_ERROR([GNU Flex required to build Bungee.])
 fi
 
-# Bison Check
+# Check for bison
 AC_PROG_YACC
 if test "x${YACC}" != "xbison -y";  then
    AC_MSG_ERROR([GNU Bison required to build Bungee.])
