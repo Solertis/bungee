@@ -35,3 +35,7 @@ Makefile
 *.xml
 *.la
 bungee
+libbungee/src/parser.c
+libbungee/src/parser.h
+libbungee/src/scanner.c
+*.tar.*
