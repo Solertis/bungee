@@ -1,3 +1,9 @@
+Dependencies:
+=============
+Debian: pkg-config autoconf automake libtool flex bison python3 python3-dev libreadline-dev libmsgpack-dev libzmq-dev
+Debian Optional: publican
+
+
 Installing from Source
 ======================
 Source installation is based on standard GNU autotools

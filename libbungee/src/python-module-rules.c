@@ -1,5 +1,5 @@
 /*
-python-module-rule.c: RULE module
+python-module-rules.c: RULES module
 
 This file is part of Bungee.
 
@@ -25,48 +25,46 @@ limitations under the License.
 #include "local-defs.h"
 #include "logger.h"
 
-static PyObject *mod_rule; /* hold a reference RULE module imported by mod_rule_init */
+static PyObject *mod_rules; /* hold a reference RULE module imported by mod_rule_init */
 
 /************* BUNGEE PRIMITIVES ***************/
-static PyObject* emb_rule_append (PyObject *self, PyObject *args);
+static PyObject* emb_rules_append (PyObject *self, PyObject *args);
 
 static PyMethodDef BungeeMethods[] = {
-  {"ADD", emb_rule_append, METH_VARARGS,
+  {"ADD", emb_rules_append, METH_VARARGS,
    N_("Append a new RULE.")},
   {NULL, NULL, 0, NULL}
 };
 
 /*
-  # RULES.APPEND('MyGrp', 'MyRule1', '''True''', '_ACTION_True()'))
+  # RULES.APPEND('GroupName', 'RuleName', '''CONDITION()''', 'ACTION()'))
 
-  RULE.APPEND primitive appends a new rule to the rule table. It uses event
+  RULES.APPEND primitive appends a new rule to the rule table. It uses event
   driven programming model, where condition determines the action.
 
   Arguments:
   ----------
-  NAME - Rule name as string.
-  CONDITION - Condition should evaluate to boolean.
-            - Condition can be of type [bool|/regex/|condition()].
-	    - condition() is a callback Python function. It takes no
-	      argument and returns bool.
-  ACTION - action() is callback python function. It takes dictionary
-           object returned by previous RULE or INPUT as argument and
-	   returns a new dictionary (may be same or modified).
+  GROUP_NAME - Group name as string.
+  RULE_NAME  - Rule name as string.
+  CONDITION()- Condition should evaluate to boolean.
+             - Condition() is a callback Python function. It takes no
+	       argument and returns bool.
+  ACTION()   - action() is callback python function. It takes dictionary
+               object returned by previous RULE or INPUT as argument and
+	       returns a new dictionary (may be same or modified).
 
   Returns:
   --------
-  Returns the dictionary returned by action() or NULL upon failure.
+  Returns the a FLOW tuple as dictated by ACTION or False upon failure.
  */
 static PyObject*
-emb_rule_append(PyObject *self, PyObject *args)
+emb_rules_append (PyObject *self, PyObject *args)
 {
-  char *name;
-  if(!PyArg_ParseTuple(args, "s:append", name, ))
-    {
-      BNG_DBG (_("Error parsing RULE.APPEND(...) rule."));
-      return NULL;
-    }
-  return PyUnicode_FromString ();
+  gchar *group_name, *rule_name, *condt, *action;
+  if(!PyArg_ParseTuple (args, "ssss:APPEND", &group_name, &rule_name, &condt, &action))
+    BNG_DBG (_("Error parsing RULES.APPEND(...) rule."));
+
+  Py_RETURN_NONE;
 }
 
 /****************************************/
@@ -74,10 +72,10 @@ emb_rule_append(PyObject *self, PyObject *args)
 /****************************************/
 
 /************* BUNGEE MODULE ***************/
-static PyObject* PyInit_bungee(void);
+static PyObject* PyInit_bungee (void);
 
-static PyModuleDef BungeeModule = {
-  PyModuleDef_HEAD_INIT, "BUNGEE", NULL, -1, BungeeMethods,
+static PyModuleDef RulesModule = {
+  PyModuleDef_HEAD_INIT, "RULES", NULL, -1, BungeeMethods,
   NULL, NULL, NULL, NULL
 };
 
@@ -85,7 +83,7 @@ static PyModuleDef BungeeModule = {
 static PyObject*
 PyInit_bungee(void)
 {
-  return PyModule_Create (&BungeeModule);
+  return PyModule_Create (&RulesModule);
 }
 
 /* Imports BUNGEE module to __main__ and returns a reference to BUNGEE module */

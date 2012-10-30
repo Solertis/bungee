@@ -45,7 +45,7 @@ emb_bng_version (PyObject *self, PyObject *args)
   if(!PyArg_ParseTuple(args, ":version"))
     {
       BNG_DBG (_("Error parsing BUNGEE.Version() tuple"));
-      return NULL;
+      Py_RETURN_NONE;
     }
   return PyUnicode_FromString (VERSION);
 }
