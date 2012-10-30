@@ -24,6 +24,7 @@ AC_CONFIG_FILES([bungee.lsm
 	libbungee/Makefile
 	libbungee/src/Makefile
 	contrib/Makefile
+	contrib/aclocal/Makefile
 	doc/Makefile
 	doc/publican-bungee/Makefile
 	doc/publican-bungee/publican-bungee.spec

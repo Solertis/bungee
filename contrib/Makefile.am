@@ -1,4 +1,4 @@
-SUBDIRS = 
+SUBDIRS = aclocal
 
 EXTRA_DIST = 
 
