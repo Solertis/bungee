@@ -3,7 +3,6 @@
 Makefile.in
 
 # http://www.gnu.org/software/autoconf
-
 /autom4te.cache
 /aclocal.m4
 /compile
@@ -20,6 +19,8 @@ config.log
 config.sub
 ltmain.sh
 m4
+build
+ylwrap
 *.o
 *.lo
 *.deps
@@ -34,3 +35,7 @@ Makefile
 *.xml
 *.la
 bungee
+libbungee/src/parser.c
+libbungee/src/parser.h
+libbungee/src/scanner.c
+*.tar.*
