@@ -1,5 +1,5 @@
 /*
-python-module-bungee.h: BUNGEE module.
+python-module-rules.h: RULES module.
 
 This file is part of Bungee.
 
@@ -18,19 +18,19 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#ifndef _PYTHON_MODULE_BUNGEE_H
-#define _PYTHON_MODULE_BUNGEE_H
+#ifndef _PYTHON_MODULE_RULES_H
+#define _PYTHON_MODULE_RULES_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-gint mod_bungee_register (void);
-gint mod_bungee_init (void);
-gint mod_bungee_fini (void);
+gint mod_rules_register (void);
+gint mod_rules_init (void);
+gint mod_rules_fini (void);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* _PYTHON_MODULE_BUNGEE_H */
+#endif /* _PYTHON_MODULE_RULES_H */

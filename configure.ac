@@ -60,10 +60,8 @@ fi
 dnl Checks for header files.
 AC_CHECK_HEADERS(unistd.h sys/param.h sys/time.h time.h sys/mkdev.h sys/sysmacros.h string.h memory.h fcntl.h dirent.h sys/ndir.h ndir.h alloca.h locale.h )
 
-dnl Check for if pkg-config exists
+dnl Check for pkg-config
 PKG_PROG_PKG_CONFIG
-
-dnl Checks for typedefs, structures, and compiler characteristics.
 
 dnl Checks for library functions.
 dnl glib2 library flags
