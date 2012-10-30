@@ -24,7 +24,7 @@ limitations under the License.
 
 #include "local-defs.h"
 #include "logger.h"
-#include "python-globals.h"
+#include "python-bungee-globals.h"
 
 static PyObject *mod_bungee; /* hold a reference BUNGEE module imported by mod_bungee_init */
 
