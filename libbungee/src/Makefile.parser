@@ -15,5 +15,4 @@ clean:
 	-rm -f parser lex.yy.c parser.tab.c parser.tab.h lex.yy.o parser.output
 
 run: parser
-	-./parser < /tmp/test.bng
-	#-./parser < ../../tests/scripts/test.bng
+	-./parser < ../../tests/scripts/test.bng

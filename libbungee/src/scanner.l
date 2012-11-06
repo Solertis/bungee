@@ -17,7 +17,7 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 */
-%x bstring bmlstring bgroupname brulename brulecondt
+%x bquote bmlquote bgroupname brulename brulecondt
 %option yylineno noyywrap warn
 /* %option debug */
 
@@ -47,7 +47,7 @@ static unsigned int _get_indent_len (char *stmt, int len) __attribute__ ((unused
 static int _eat_up_spaces (void) __attribute__ ((unused));
 static inline void _print_token (enum yytokentype val) __attribute__ ((unused));
 
-static unsigned char slstring_type='\0', mlstring_type='\0';
+static unsigned char slquote_type='\0', mlquote_type='\0';
 static unsigned long sl_start, ml_start;
 static unsigned char _begin_found, _input_found, _end_found;
 %}
@@ -64,38 +64,38 @@ static unsigned char _begin_found, _input_found, _end_found;
 
 \" {
   sl_start = yylineno+1;
-  slstring_type='\"';
+  slquote_type='\"';
   ECHO;
-  BEGIN (bstring);
+  BEGIN (bquote);
 }
 
 \' {
   sl_start = yylineno+1;
-  slstring_type='\'';
+  slquote_type='\'';
   ECHO;
-  BEGIN (bstring);
+  BEGIN (bquote);
 }
 
-<bstring>{
+<bquote>{
   [^\\\"\'\n]* ECHO;  /* Consume anything that's not a '*' or newline */
 
-  \\\n ; /* Remove newline chars in single quote strings */
+  \\\n ; /* Remove newline chars in single quote text */
 
-  \" {    /* End of string */
-    if (slstring_type == '\"')
+  \" {    /* End of quote */
+    if (slquote_type == '\"')
       {
         ECHO;
-        slstring_type='\0';
+        slquote_type='\0';
         sl_start = 0;
         BEGIN (INITIAL);
       }
   }
 
-  \' {    /* End of string */
-    if (slstring_type == '\'')
+  \' {    /* End of quote */
+    if (slquote_type == '\'')
       {
         ECHO;
-        slstring_type='\0';
+        slquote_type='\0';
         sl_start = 0;
         BEGIN (INITIAL);
       }
@@ -106,40 +106,40 @@ static unsigned char _begin_found, _input_found, _end_found;
   }
 }
 
-\'\'\' { /* Multi line string. */
+\'\'\' { /* Multi line quote. */
   ml_start=yylineno+1;
-  mlstring_type='\'';
-  BEGIN (bmlstring);
+  mlquote_type='\'';
+  BEGIN (bmlquote);
   ECHO;
 }
 
-\"\"\" { /* Multi line string. */
+\"\"\" { /* Multi line quote. */
   ml_start=yylineno+1;
-  mlstring_type='\"';
+  mlquote_type='\"';
   ECHO;
-  BEGIN (bmlstring);
+  BEGIN (bmlquote);
 }
 
-<bmlstring>{
-  [^\\\'\"]* { /* Multi line string. */
+<bmlquote>{
+  [^\\\'\"]* { /* Multi line quote. */
     ECHO;
   }
 
-  (\'\'\') { /* End of multi line string. */
+  (\'\'\') { /* End of multi line quote. */
     ECHO;
-    if (mlstring_type == '\'')
+    if (mlquote_type == '\'')
       {
-        mlstring_type='\0';
+        mlquote_type='\0';
         ml_start = 0;
         BEGIN (INITIAL);
       }
   }
 
-  (\"\"\") { /* End of multi line string. */
+  (\"\"\") { /* End of multi line quote. */
     ECHO;
-    if (mlstring_type == '\"')
+    if (mlquote_type == '\"')
       {
-        mlstring_type='\0';
+        mlquote_type='\0';
         ml_start = 0;
         BEGIN (INITIAL);
       }
@@ -343,7 +343,7 @@ _get_indent_len (char *stmt, int len)
 void
 _bng_scanner_init (void)
 {
-  slstring_type = mlstring_type='\0';
+  slquote_type = mlquote_type='\0';
   sl_start = ml_start = 0;
   _begin_found = _input_found = _end_found = 0;
 }
