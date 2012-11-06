@@ -85,10 +85,10 @@ import_mod_bungee (void)
     }
 
   /* Make our "bungee" module available to Python's main to import */
-  PyObject *_bng_module_str = PyUnicode_FromString ("BUNGEE");
-  _mod_bungee = PyImport_Import (_bng_module_str);
+  PyObject *_module_str = PyUnicode_FromString ("BUNGEE");
+  _mod_bungee = PyImport_Import (_module_str);
   PyObject_SetAttrString (_mod_main, "BUNGEE", _mod_bungee);
-  Py_DECREF (_bng_module_str);
+  Py_DECREF (_module_str);
 
   return (_mod_bungee);
 }
