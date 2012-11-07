@@ -18,6 +18,26 @@
   limitations under the License.
 */
 
+/*** Bison declarations ***/
+/* Start symbol */
+%start program
+%error-verbose
+%locations
+
+/* Terminal value type */
+%union {
+  char *string;
+}
+
+/** Terminal symbols **/
+/* Terminal symbols with no value */
+%token TBEGIN TINPUT TEND TRULE TGROUP TEOF
+/* Terminal symbols with string value */
+%token <string> TGROUP_NAME TRULE_NAME TRULE_CONDT
+
+/*  Free heap based token values during error recovery */
+%destructor { XFREE ($$); } <string>
+
 /* C declarations */
 %initial-action {
 #ifndef _DEBUG_PARSER
@@ -70,26 +90,6 @@ FILE *yyerr;
 static const char *__script_name=NULL;
 extern int yylineno;
 }
-
-/*** Bison declarations ***/
-/* Start symbol */
-%start program
-%error-verbose
-%locations
-
-/* Terminal value type */
-%union {
-  char *string;
-}
-
-/** Terminal symbols **/
-/* Terminal symbols with no value */
-%token TBEGIN TINPUT TEND TRULE TGROUP TEOF
-/* Terminal symbols with string value */
-%token <string> TGROUP_NAME TRULE_NAME TRULE_CONDT
-
-/*  Free heap based token values during error recovery */
-%destructor { XFREE ($$); } <string>
 
 /* Grammar Rules */
 %%
@@ -147,9 +147,9 @@ rule: TRULE TRULE_NAME TRULE_CONDT
     }
 
   if ($5 == NULL)
-    fprintf (yyout, "RULES.APPEND('%s', '%s', '''True''', '_ACTION_%s'))\n", $2, $4, $4);
+    fprintf (yyout, "RULES.APPEND('%s', '%s', '''lambda: True''', '_ACTION_%s'))\n", $2, $4, $4);
   else
-    fprintf (yyout, "RULES.APPEND('%s', '%s', '''%s''', '_ACTION_%s'))\n", $2, $4, $5, $4);
+    fprintf (yyout, "RULES.APPEND('%s', '%s', '''lambda: %s''', '_ACTION_%s'))\n", $2, $4, $5, $4);
 
   fprintf (yyout, "def _ACTION_%s():", $4);
 

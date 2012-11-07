@@ -232,7 +232,7 @@ RULE { /* Rule Keyword */
   }
 }
 
-^([ \t]+RULE[ \t]+) { /* Error Case */
+^([ \t]+RULE[ \t]+) { /* Error Case: Global RULE starting with space. */
   ECHO;
   return yyerror ("RULE keyword should start at the beginning of line.\n");
 }
