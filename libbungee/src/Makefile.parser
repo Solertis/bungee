@@ -4,15 +4,15 @@
 all: parser
 
 lex.yy.c: scanner.l
-	-flex scanner.l
+	-flex --header-file=scanner.h scanner.l
 
 parser.tab.c: parser.y
 	-bison -d -v parser.y
 
 parser: parser.tab.c lex.yy.c
-	-gcc -Wall -D_DEBUG_PARSER -D_GNU_SOURCE -o parser parser.tab.c lex.yy.c
+	-gcc -g -O0 -fno-inline -Wall -D_DEBUG_PARSER -D_GNU_SOURCE -o parser parser.tab.c lex.yy.c
 clean:
-	-rm -f parser lex.yy.c parser.tab.c parser.tab.h lex.yy.o parser.output
+	-rm -f parser lex.yy.c parser.tab.c parser.tab.h scanner.h lex.yy.o parser.output
 
 run: parser
 	-./parser < ../../tests/scripts/test.bng
