@@ -17,15 +17,38 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 */
-%x bstring bmlstring bgroupname brulename brulecondt
-%option yylineno noyywrap warn
+
+/* General Flex options. */
+%option yylineno noyywrap warn stack
+
+/* Make our scanner and parser re-entrant. This optin tells Bison to
+   pass parameters appropriately. */
+%option reentrant bison-locations bison-bridge
+
+/* Thread specific local variables are stored in this structure.
+   Use "yyget_extra (yyscanner)->" to get access to this structure. */
+%option extra-type=" local_vars_t *"
+
+/* Generate header file for all the function definitions. */
+/* %option header-file=scanner.h */
+
+/* Start Conditions. */
+%x bquote bmlquote bgroupname brulename brulecondt
+
 /* %option debug */
 
 %{
 #include <string.h>
 #include <stdlib.h>
+#include <stdarg.h>
 
-#ifdef _DEBUG_PARSER /* Support hand-compiled testing for quick debugging */
+/* Disable warnings in the flex generated code that are safe to ignore. */
+#if defined __GNUC__
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wunused-function"
+#endif
+
+#ifdef _DEBUG_PARSER /* Support hand-compiled testing for quick debugging. */
 #include "parser.tab.h"
 #else
 #include "parser.h" /* Automake auto-generates parser.h and not default style parser.tab.h */
@@ -35,26 +58,27 @@
 //#define BRETURN(val) do { _print_token (val); return val; } while (0)
 #define BRETURN(val) return val
 
-/* handle locations */
-int yycolumn = 1;
-#define YY_USER_ACTION yylloc.first_line = yylloc.last_line = yylineno; \
-  yylloc.first_column = yycolumn; \
-  yylloc.last_column = yycolumn+yyleng-1; \
-  yycolumn += yyleng-1;
+/* Handle locations. User action macro is always executed prior to the matched rule's action. */
+#define YY_USER_ACTION \
+   yyget_lloc (yyscanner)->first_line = yyget_lloc (yyscanner)->last_line = yyget_lineno (yyscanner); \
+   yyget_lloc (yyscanner)->first_column = yyget_lloc (yyscanner)->_column; \
+   yyget_lloc (yyscanner)->last_column = yyget_lloc (yyscanner)->_column+yyget_leng (yyscanner)-1; \
+   yyget_lloc (yyscanner)->_column += yyget_leng (yyscanner)-1;
 
-static inline char _input_ch (void) __attribute__ ((unused));
-static unsigned int _get_indent_len (char *stmt, int len) __attribute__ ((unused));
-static int _eat_up_spaces (void) __attribute__ ((unused));
-static inline void _print_token (enum yytokentype val) __attribute__ ((unused));
+/* Flex returns this code upon error */
+#define YYERRCODE  256
 
-static unsigned char slstring_type='\0', mlstring_type='\0';
-static unsigned long sl_start, ml_start;
-static unsigned char _begin_found, _input_found, _end_found;
+/* Error handling routine */
+int yyerror (yyscan_t yyscanner, const char *format, ...) __attribute__ ((format (gnu_printf, 2, 3)));
+static inline char _input_ch (yyscan_t yyscanner);
+static unsigned int _get_indent_len (char *stmt, int len);
+static int _eat_up_spaces (yyscan_t yyscanner);
+static inline void _print_token (enum yytokentype val);
 %}
 
 %%
 \n {
-  yycolumn = 1;
+  yyget_lloc (yyscanner)->_column = 1;
   ECHO;
 }
 
@@ -63,135 +87,135 @@ static unsigned char _begin_found, _input_found, _end_found;
 }
 
 \" {
-  sl_start = yylineno+1;
-  slstring_type='\"';
+  yyget_extra (yyscanner)->quote.sl_start = yyget_lineno (yyscanner)+1;
+  yyget_extra (yyscanner)->quote.slquote_type = '\"';
   ECHO;
-  BEGIN (bstring);
+  BEGIN (bquote);
 }
 
 \' {
-  sl_start = yylineno+1;
-  slstring_type='\'';
+  yyget_extra (yyscanner)->quote.sl_start = yyget_lineno (yyscanner)+1;
+  yyget_extra (yyscanner)->quote.slquote_type = '\'';
   ECHO;
-  BEGIN (bstring);
+  BEGIN (bquote);
 }
 
-<bstring>{
+<bquote>{
   [^\\\"\'\n]* ECHO;  /* Consume anything that's not a '*' or newline */
 
-  \\\n ; /* Remove newline chars in single quote strings */
+  \\\n ; /* Remove newline chars in single quote text */
 
-  \" {    /* End of string */
-    if (slstring_type == '\"')
+  \" {    /* End of quote */
+    if (yyget_extra (yyscanner)->quote.slquote_type == '\"')
       {
         ECHO;
-        slstring_type='\0';
-        sl_start = 0;
+        yyget_extra (yyscanner)->quote.slquote_type ='\0';
+        yyget_extra (yyscanner)->quote.sl_start = 0;
         BEGIN (INITIAL);
       }
   }
 
-  \' {    /* End of string */
-    if (slstring_type == '\'')
+  \' {    /* End of quote */
+    if (yyget_extra (yyscanner)->quote.slquote_type == '\'')
       {
         ECHO;
-        slstring_type='\0';
-        sl_start = 0;
+        yyget_extra (yyscanner)->quote.slquote_type ='\0';
+        yyget_extra (yyscanner)->quote.sl_start = 0;
         BEGIN (INITIAL);
       }
     }
   <<EOF>> { /* Unterminated quote */
-    if (sl_start != 0)
-      return yyerror ("ERROR: Unterminated quote in line %ld", sl_start);
+    if (yyget_extra (yyscanner)->quote.sl_start != 0)
+      return yyerror (yyscanner, "ERROR: Unterminated quote in line %ld", yyget_extra (yyscanner)->quote.sl_start);
   }
 }
 
-\'\'\' { /* Multi line string. */
-  ml_start=yylineno+1;
-  mlstring_type='\'';
-  BEGIN (bmlstring);
+\'\'\' { /* Multi line quote. */
+  yyget_extra (yyscanner)->quote.ml_start = yyget_lineno (yyscanner)+1;
+  yyget_extra (yyscanner)->quote.mlquote_type = '\'';
+  BEGIN (bmlquote);
   ECHO;
 }
 
-\"\"\" { /* Multi line string. */
-  ml_start=yylineno+1;
-  mlstring_type='\"';
+\"\"\" { /* Multi line quote. */
+  yyget_extra (yyscanner)->quote.ml_start = yyget_lineno (yyscanner)+1;
+  yyget_extra (yyscanner)->quote.mlquote_type = '\"';
   ECHO;
-  BEGIN (bmlstring);
+  BEGIN (bmlquote);
 }
 
-<bmlstring>{
-  [^\\\'\"]* { /* Multi line string. */
+<bmlquote>{
+  [^\\\'\"]* { /* Multi line quote. */
     ECHO;
   }
 
-  (\'\'\') { /* End of multi line string. */
+  (\'\'\') { /* End of multi line quote. */
     ECHO;
-    if (mlstring_type == '\'')
+    if (yyget_extra (yyscanner)->quote.mlquote_type == '\'')
       {
-        mlstring_type='\0';
-        ml_start = 0;
+        yyget_extra (yyscanner)->quote.mlquote_type ='\0';
+        yyget_extra (yyscanner)->quote.ml_start = 0;
         BEGIN (INITIAL);
       }
   }
 
-  (\"\"\") { /* End of multi line string. */
+  (\"\"\") { /* End of multi line quote. */
     ECHO;
-    if (mlstring_type == '\"')
+    if (yyget_extra (yyscanner)->quote.mlquote_type == '\"')
       {
-        mlstring_type='\0';
-        ml_start = 0;
+        yyget_extra (yyscanner)->quote.mlquote_type ='\0';
+        yyget_extra (yyscanner)->quote.ml_start = 0;
         BEGIN (INITIAL);
       }
   }
   <<EOF>> { /* Unterminated quote */
-    if (ml_start != 0)
-      return yyerror ("ERROR: Unterminated quote in line %ld", ml_start);
+    if (yyget_extra (yyscanner)->quote.ml_start != 0)
+      return yyerror (yyscanner, "ERROR: Unterminated quote in line %ld", yyget_extra (yyscanner)->quote.ml_start);
   }
 }
 
 ^(BEGIN[ \t]*\:) { /* BEGIN: block */
-  if (_begin_found)
-    return yyerror ("Duplicate BEGIN section found.\n");
-  _begin_found=1;
+  if (yyget_extra (yyscanner)->found.begin)
+    return yyerror (yyscanner, "Duplicate BEGIN section found.\n");
+  yyget_extra (yyscanner)->found.begin = 1;
 
   BRETURN (TBEGIN);
 }
 
 [ \t]+BEGIN[ \t]*\: { /* Error Case */
   ECHO;
-  return yyerror ("BEGIN keyword should start at the beginning of line.\n");
+  return yyerror (yyscanner, "BEGIN keyword should start at the beginning of line.\n");
 }
 
 ^(INPUT[ \t]*\:) { /* INPUT: block */
-  if (_input_found)
-    return yyerror ("Duplicate INPUT section found.\n");
-  _input_found=1;
+  if (yyget_extra (yyscanner)->found.input)
+    return yyerror (yyscanner, "Duplicate INPUT section found.\n");
+  yyget_extra (yyscanner)->found.input = 1;
 
   BRETURN (TINPUT);
 }
 
 [ \t]+INPUT[ \t]*\: { /* Error Case */
   ECHO;
-  return yyerror ("INPUT keyword should start at the beginning of line.\n");
+  return yyerror (yyscanner, "INPUT keyword should start at the beginning of line.\n");
 }
 
 ^(GROUP) {
-  _eat_up_spaces ();
+  _eat_up_spaces (yyscanner);
   BEGIN (bgroupname);
   BRETURN (TGROUP);
 }
 
 <bgroupname>{
   [a-zA-Z0-9_]+ { /* Group Name */
-    yylval.string = strndup (yytext, yyleng);
-    if (strncmp (yylval.string, "RULE", 4) == 0)
+    yyget_lval(yyscanner)->string = strndup (yyget_text (yyscanner), yyget_leng (yyscanner));
+    if (strncmp (yyget_lval(yyscanner)->string, "RULE", 4) == 0)
       {
-        free (yylval.string);
-        yylval.string = NULL;
+        free (yyget_lval(yyscanner)->string);
+        yyget_lval(yyscanner)->string = NULL;
         yyless (0);
       }
-    _eat_up_spaces ();
+    _eat_up_spaces (yyscanner);
     BEGIN (INITIAL);
     BRETURN (TGROUP_NAME);
   }
@@ -199,25 +223,25 @@ static unsigned char _begin_found, _input_found, _end_found;
 
 [ \t]+GROUP[ \t]+ { /* Error Case */
   ECHO;
-  return yyerror ("GROUP keyword should start at the beginning of line.\n");
+  return yyerror (yyscanner, "GROUP keyword should start at the beginning of line.\n");
 }
 
 RULE { /* Rule Keyword */
-  _eat_up_spaces ();
+  _eat_up_spaces (yyscanner);
   BEGIN (brulename);
   BRETURN (TRULE);
 }
 
 <brulename>{
   [a-zA-Z0-9_]+ { /* Rule Name */
-    yylval.string = strndup (yytext, yyleng);
-    _eat_up_spaces ();
+    yyget_lval(yyscanner)->string = strndup (yyget_text (yyscanner), yyget_leng (yyscanner));
+    _eat_up_spaces (yyscanner);
     BEGIN (brulecondt);
     BRETURN (TRULE_NAME);
   }
   \: {
     yyless (0);
-    yylval.string = '\0';
+    yyget_lval(yyscanner)->string = '\0';
     BEGIN (brulecondt);
     BRETURN (TRULE_NAME);
   }
@@ -225,49 +249,49 @@ RULE { /* Rule Keyword */
 
 <brulecondt>{
   [^\:\n]*[\:] { /* Rule Condition */
-    yytext[yyleng-1] = '\0'; /* Discard ':' */
-    yylval.string = strndup (yytext, yyleng);
+    yyget_text (yyscanner)[yyget_leng (yyscanner)-1] = '\0'; /* Discard ':' */
+    yyget_lval(yyscanner)->string = strndup (yyget_text (yyscanner), yyget_leng (yyscanner));
     BEGIN (INITIAL);
     BRETURN (TRULE_CONDT);
   }
 }
 
-^([ \t]+RULE[ \t]+) { /* Error Case */
+^([ \t]+RULE[ \t]+) { /* Error Case: Global RULE starting with space. */
   ECHO;
-  return yyerror ("RULE keyword should start at the beginning of line.\n");
+  return yyerror (yyscanner, "RULE keyword should start at the beginning of line.\n");
 }
 
 ^(END[ \t]*\:) { /* END: block */
-  if (_end_found)
-    return yyerror ("Duplicate END section found.\n");
-  _end_found=1;
+  if (yyget_extra (yyscanner)->found.end)
+    return yyerror (yyscanner, "Duplicate END section found.\n");
+  yyget_extra (yyscanner)->found.end = 1;
 
   BRETURN (TEND);
 }
 
 [ \t]+END[ \t]*\: { /* Error Case */
   ECHO;
-  return yyerror ("END keyword should start at the beginning of line.\n");
+  return yyerror (yyscanner, "END keyword should start at the beginning of line.\n");
 }
 
 \$\$ { /* Dictionary of all BUNGEE global variables. */
-  fprintf(yyout, "BUNGEE.GLOBALS");
+  fprintf(yyget_out (yyscanner), "BUNGEE.GLOBALS");
 }
 
 \$\* { /* All field values in a list. */
-  fprintf(yyout, "BUNGEE.GLOBALS.items()");
+  fprintf(yyget_out (yyscanner), "BUNGEE.GLOBALS.items()");
 }
 
 \$\@ { /* All field symbols in a list. */
-  fprintf(yyout, "BUNGEE.GLOBALS.keys()");
+  fprintf(yyget_out (yyscanner), "BUNGEE.GLOBALS.keys()");
 }
 
 \$\# { /* Number of fields. */
-  fprintf(yyout, "len(BUNGEE.GLOBALS)");
+  fprintf(yyget_out (yyscanner), "len(BUNGEE.GLOBALS)");
 }
 
 \$[a-zA-Z_][a-zA-Z_0-9]* { /* Global variable */
-  fprintf(yyout, "BUNGEE.GLOBALS['%s']", yytext+1);
+  fprintf(yyget_out (yyscanner), "BUNGEE.GLOBALS['%s']", yyget_text (yyscanner)+1);
 }
 
 [ \t]+ ECHO;
@@ -299,23 +323,25 @@ static inline void _print_token (enum yytokentype val)
 
 /* Lex's input() wrapper to safely handle location tacking */
 static inline char
-_input_ch (void)
+_input_ch (yyscan_t yyscanner)
 {
-  yycolumn++;;
-  return input ();
+  yyget_lloc (yyscanner)->_column++;;
+  return input (yyscanner);
 }
 
 static int
-_eat_up_spaces (void)
+_eat_up_spaces (yyscan_t yyscanner)
 {
+  struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
   register int ch;
+
   for (;;)
     {
-      ch = _input_ch ();
+      ch = _input_ch (yyscanner);
       if ((ch == ' ') || (ch == '\t'))
 	  continue;
       else if (ch == EOF)
-	return yyerror ("Unexpected end of file while eating spaces.\n");
+	return yyerror (yyscanner, "Unexpected end of file while eating spaces.\n");
       else
 	{
 	  unput (ch);
@@ -339,13 +365,28 @@ _get_indent_len (char *stmt, int len)
   return indent_len;
 }
 
-/* Initialize flex scanner. */
-void
-_bng_scanner_init (void)
+int
+yyerror (yyscan_t yyscanner, const char *format, ...)
 {
-  slstring_type = mlstring_type='\0';
-  sl_start = ml_start = 0;
-  _begin_found = _input_found = _end_found = 0;
+  if (!format)
+    return YYERRCODE;
+
+  local_vars_t *locals = yyget_extra (yyscanner);
+  if (locals->err_fp)
+    {
+      va_list ap;
+      va_start (ap, format);
+
+      if (locals->script_name && locals->script_name[0])
+	fprintf (locals->err_fp, "ERROR[%s:%d]: ", locals->script_name, yyget_lineno (yyscanner));
+      else
+	fprintf (locals->err_fp, "ERROR[line %d]: ", yyget_lineno (yyscanner));
+
+      vfprintf (locals->err_fp, format, ap);
+      va_end (ap);
+    }
+  // exit (1);
+  return YYERRCODE;
 }
 
 #if 0

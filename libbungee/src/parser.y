@@ -18,62 +18,10 @@
   limitations under the License.
 */
 
-/* C declarations */
-%initial-action {
-#ifndef _DEBUG_PARSER
-  bindtextdomain ("bison-runtime", BISON_LOCALEDIR);
-#endif
-}
-
-%code top {
-#include <libintl.h>
-#include <stdio.h>
-#include <string.h>
-#include <stdarg.h>
-#include <stdlib.h>
-#include <errno.h>
-}
-
-%code provides {
-/* Flex returns this code upon error */
-#define YYERRCODE  256
-
-/* Error handling routine */
-int yyerror (const char *format, ...) __attribute__ ((format (gnu_printf, 1, 2)));
-
-/* Compile .bng source to .bngo format */
-int bng_compile (FILE *script_fp, const char *script_name, FILE *output_fp, FILE *err_fp);
-
-}
-
-%code requires {
-/* Terminal location type */
-typedef struct YYLTYPE {
-  int first_line;
-  int first_column;
-  int last_line;
-  int last_column;
-  char *filename;
-} YYLTYPE;
-# define YYLTYPE_IS_DECLARED 1 /* alert the parser that we have our own definition */
-}
-
-%code {
-extern int yylex ();
-extern FILE *yyin, *yyout;
-FILE *yyerr;
-
-#define XFREE(ptr) if (ptr) { free (ptr); ptr = NULL;}
-#define _PAD_SPACES(num) do { int i; for (i=1; i<num; i++) putchar (' '); } while (0)
-
-/* Current yyin script source */
-static const char *__script_name=NULL;
-extern int yylineno;
-}
-
 /*** Bison declarations ***/
 /* Start symbol */
 %start program
+%define api.pure
 %error-verbose
 %locations
 
@@ -91,6 +39,68 @@ extern int yylineno;
 /*  Free heap based token values during error recovery */
 %destructor { XFREE ($$); } <string>
 
+/* Pass the argument to yyparse through to yylex. */
+%parse-param {yyscan_t yyscanner}
+%lex-param   {yyscan_t yyscanner}
+
+/* C declarations */
+%initial-action {
+#ifndef _DEBUG_PARSER
+  bindtextdomain ("bison-runtime", BISON_LOCALEDIR);
+#endif
+}
+
+%code top {
+#include <libintl.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <errno.h>
+}
+
+%code provides {
+/* Compile .bng source to .bngo format */
+int bng_compile (FILE *script_fp, const char *script_name, FILE *out_fp, FILE *err_fp);
+}
+
+%code requires {
+  typedef struct {
+    FILE *err_fp;
+    const char *script_name;
+    struct {
+      unsigned char slquote_type;
+      unsigned char mlquote_type;
+      unsigned long sl_start;
+      unsigned long ml_start;
+    } quote;
+    struct found {
+      unsigned char begin;
+      unsigned char input;
+      unsigned char end;
+    } found;
+  } local_vars_t;
+
+/* Terminal location type */
+typedef struct YYLTYPE {
+  int _column;
+  int first_line;
+  int first_column;
+  int last_line;
+  int last_column;
+} YYLTYPE;
+# define YYLTYPE_IS_DECLARED 1 /* alert the parser that we have our own definition */
+}
+
+%code {
+#define XFREE(ptr) if (ptr) { free (ptr); ptr = NULL;}
+#define _PAD_SPACES(num) do { int i; for (i=1; i<num; i++) putchar (' '); } while (0)
+
+/* Flex generates all the header definitions for us. */
+#include "scanner.h"
+
+extern int yyerror (yyscan_t yyscanner, const char *format, ...) __attribute__ ((format (gnu_printf, 2, 3)));
+}
+
 /* Grammar Rules */
 %%
 program: | program section
@@ -99,29 +109,29 @@ section: begincb | inputcb | rule | endcb
 begincb:
 TBEGIN
 {
-  fprintf (yyout, "def BEGIN():");
+  fprintf (yyget_out (yyscanner), "def BEGIN():");
 }
 
 inputcb:
 TINPUT
 {
-  fprintf (yyout, "def INPUT():");
+  fprintf (yyget_out (yyscanner), "def INPUT():");
 }
 
 rule: TRULE TRULE_NAME TRULE_CONDT
 {
   if ($2 == NULL)
     {
-      yyerror ("RULE has no name.\n");
+      yyerror (yyscanner, "RULE has no name.\n");
       YYABORT;
     }
 
   if ($3 == NULL)
-    fprintf (yyout, "RULES.APPEND('DEFAULT', '%s', lambda: True, '_ATION_%s()'))\n", $2, $2);
+    fprintf (yyget_out (yyscanner), "RULES.APPEND('GLOBAL', '%s', lambda: True, '_ATION_%s'))\n", $2, $2);
   else
-    fprintf (yyout, "RULES.APPEND('DEFAULT', '%s', lambda: %s, '_ACTION_%s()'))\n", $2, $3, $2);
+    fprintf (yyget_out (yyscanner), "RULES.APPEND('GLOBAL', '%s', lambda: %s, '_ACTION_%s'))\n", $2, $3, $2);
 
-  fprintf (yyout, "def _ACTION_%s():", $2);
+  fprintf (yyget_out (yyscanner), "def _ACTION_%s():", $2);
 
   XFREE ($2);
   XFREE ($3);
@@ -130,28 +140,28 @@ rule: TRULE TRULE_NAME TRULE_CONDT
 {
   if ($2 == NULL)
     {
-      yyerror ("GROUP has no name.\n");
+      yyerror (yyscanner, "GROUP has no name.\n");
       YYABORT;
     }
 
   if (strncmp ($2, "RULE", 4) == 0)
     {
-      yyerror ("GROUP has no name.\n");
+      yyerror (yyscanner, "GROUP has no name.\n");
       YYABORT;
     }
 
   if ($4 == NULL)
     {
-      yyerror ("RULE has no name.\n");
+      yyerror (yyscanner, "RULE has no name.\n");
       YYABORT;
     }
 
   if ($5 == NULL)
-    fprintf (yyout, "RULES.APPEND('%s', '%s', '''True''', '_ACTION_%s()'))\n", $2, $4, $4);
+    fprintf (yyget_out (yyscanner), "RULES.APPEND('%s', '%s', '''lambda: True''', '_ACTION_%s'))\n", $2, $4, $4);
   else
-    fprintf (yyout, "RULES.APPEND('%s', '%s', '''%s''', '_ACTION_%s()'))\n", $2, $4, $5, $4);
+    fprintf (yyget_out (yyscanner), "RULES.APPEND('%s', '%s', '''lambda: %s''', '_ACTION_%s'))\n", $2, $4, $5, $4);
 
-  fprintf (yyout, "def _ACTION_%s():", $4);
+  fprintf (yyget_out (yyscanner), "def _ACTION_%s():", $4);
 
   XFREE ($2);
   XFREE ($4);
@@ -161,7 +171,7 @@ rule: TRULE TRULE_NAME TRULE_CONDT
 endcb:
 TEND
 {
-  fprintf (yyout, "def END():");
+  fprintf (yyget_out (yyscanner), "def END():");
 }
 | error
 {
@@ -171,60 +181,37 @@ TEND
 %%
 
 int
-yyerror (const char *format, ...)
-{
-  if (!format)
-    return YYERRCODE;
-
-  if (yyerr)
-    {
-      extern int yylineno;
-      va_list ap;
-      va_start (ap, format);
-
-      if (__script_name && __script_name[0])
-	fprintf (yyerr, "ERROR[%s:%d]: ", __script_name, yylineno);
-      else
-	fprintf (yyerr, "ERROR[line %d]: ", yylineno);
-      vfprintf (yyerr, format, ap);
-      va_end (ap);
-    }
-  // exit (1);
-  return YYERRCODE;
-}
-
-int
-bng_compile (FILE *script_fp, const char *script_name, FILE *output_fp, FILE *err_fp)
+bng_compile (FILE *script_fp, const char *script_name, FILE *out_fp, FILE *err_fp)
 {
   int status;
+  yyscan_t yyscanner; /* Re-entrant praser stores its state here. */
+  local_vars_t locals;
 
-  extern void _bng_scanner_init (void);
-  _bng_scanner_init (); /* (Re)Initializes Flex global variables. */
+  locals.quote.slquote_type = locals.quote.mlquote_type='\0';
+  locals.quote.sl_start = locals.quote.ml_start = 0;
+  locals.found.begin = locals.found.input = locals.found.end = 0;
+  locals.err_fp = stderr;
+  locals.script_name = script_name; /* Used by yyerror to relate error messages to script. */
+
+  if (yylex_init_extra (&locals, &yyscanner) != 0)
+    return 1;
 
   if (script_fp == NULL)
-    yyin = stdin;
+    yyset_in (stdin, yyscanner);
   else
-    {
-      yyin = script_fp;
-      // extern yyrestart (yyin); /* Just to be on the safer side. */
-    }
+    yyset_in (script_fp, yyscanner);
 
-  if (output_fp == NULL)
-    yyout = stdout;
+  if (out_fp == NULL)
+    yyset_out (stdout, yyscanner);
   else
-    yyout = output_fp;
+    yyset_out (out_fp, yyscanner);
 
-  yyerr = err_fp; /* yyerr is declared by parser.y and not flex. */
-
-  __script_name = script_name; /* Used by yyerror to relate error messages to script. */
-
-  if (yyparse () == 0)
+  if (yyparse (yyscanner) == 0)
     status = 0;
   else
     status = 1;
 
-  yyin = yyout = yyerr = (FILE *) NULL;
-  __script_name = NULL;
+  yylex_destroy (yyscanner);
 
   return status;
 }
@@ -233,9 +220,8 @@ bng_compile (FILE *script_fp, const char *script_name, FILE *output_fp, FILE *er
 int
 main (void)
 {
-  // bng_compile (NULL, NULL, NULL, NULL);
-  bng_compile (stdin, NULL, stdout, stderr);
-  return 0;
+  //return  bng_compile (NULL, NULL, NULL, NULL);
+  return bng_compile (stdin, NULL, stdout, stderr);
 }
 
 #endif

@@ -25,6 +25,7 @@ limitations under the License.
 #include "local-defs.h"
 #include "logger.h"
 #include "python-module-bungee.h"
+#include "python-module-rules.h"
 #include "python-embedding.h"
 
 /*
@@ -91,7 +92,13 @@ bng_py_init (void)
 {
   if (mod_bungee_register () != 0)
     {
-      BNG_ERR (_(PACKAGE" registration failed."));
+      BNG_ERR (_("Module BUNGEE registration failed."));
+      return (-1);
+    }
+
+  if (mod_rules_register () != 0)
+    {
+      BNG_ERR (_("Module RULES registration failed."));
       return (-1);
     }
 
@@ -100,6 +107,12 @@ bng_py_init (void)
   if (mod_bungee_init () != 0)
     {
       BNG_ERR (_("Unable to initialize BUNGEE module."));
+      return (-1);
+    }
+
+  if (mod_rules_init () != 0)
+    {
+      BNG_ERR (_("Unable to initialize RULES module."));
       return (-1);
     }
 
@@ -112,6 +125,12 @@ bng_py_fini (void)
   if (mod_bungee_fini () != 0)
     {
       BNG_WARN (_("Unable to uninitialize BUNGEE module"));
+      return (-1);
+    }
+
+  if (mod_rules_fini () != 0)
+    {
+      BNG_WARN (_("Unable to uninitialize RULES module"));
       return (-1);
     }
 
