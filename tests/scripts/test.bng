@@ -7,17 +7,17 @@ BEGIN:
 INPUT:#this is also comment
     print("Hello INPUT1")
     print("Hello\# INPUT2")
-    $meta=FILE.META()
+    $meta=File.meta()
     print("$name=", $name, " $abcd=", $abcd)
 
 '''
 this is also comment
 '''
-RULE CopyCheck COPYRIGHT.INFRINGED($meta):
+RULE CopyCheck Copyright.infringed($meta):
   print($meta['filename'])
 
 GROUP MyGrp RULE MyRule1 True:
-  for val in $*
+  for val in $*:
     print(val)
 
 GROUP MyGroup RULE MyRule2 True:

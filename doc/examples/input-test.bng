@@ -6,8 +6,8 @@ def INPUT():
     $count = seed + $count + 1
     print("In the guts..", $count)
 
-    if $count == 10:
-        return None
+    if $count <= 10:
+        return True
 
 def END():
     print("Bye Bye!")

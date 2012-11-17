@@ -1,5 +1,5 @@
 /*
-python-module-bungee.c: BUNGEE module
+python-module-bungee.c: Bungee module
 
 This file is part of Bungee.
 
@@ -26,14 +26,14 @@ limitations under the License.
 #include "logger.h"
 #include "python-bungee-globals.h"
 
-static PyObject *mod_bungee; /* hold a reference BUNGEE module imported by mod_bungee_init */
+static PyObject *mod_bungee; /* hold a reference Bungee module imported by mod_bungee_init */
 
-/************* BUNGEE PRIMITIVES ***************/
+/************* Bungee Primitives ***************/
 static PyObject* emb_bng_version (PyObject *self, PyObject *args);
 
 static PyMethodDef BungeeMethods[] = {
-  {"VERSION", emb_bng_version, METH_VARARGS,
-   N_("Get "PACKAGE" version string.")},
+  {"version", emb_bng_version, METH_VARARGS,
+   N_("Get Bungee version string.")},
   {NULL, NULL, 0, NULL}
 };
 
@@ -44,7 +44,7 @@ emb_bng_version (PyObject *self, PyObject *args)
   /* string after : is used as function name in error messages */
   if(!PyArg_ParseTuple(args, ":version"))
     {
-      BNG_DBG (_("Error parsing BUNGEE.Version() tuple"));
+      BNG_DBG (_("Error parsing Bungee.version() tuple"));
       Py_RETURN_NONE;
     }
   return PyUnicode_FromString (VERSION);
@@ -54,11 +54,11 @@ emb_bng_version (PyObject *self, PyObject *args)
 /* >>>> Insert new primitives here <<<< */
 /****************************************/
 
-/************* BUNGEE MODULE ***************/
+/************* Bungee Module ***************/
 static PyObject* PyInit_bungee(void);
 
 static PyModuleDef BungeeModule = {
-  PyModuleDef_HEAD_INIT, "BUNGEE", NULL, -1, BungeeMethods,
+  PyModuleDef_HEAD_INIT, "Bungee", NULL, -1, BungeeMethods,
   NULL, NULL, NULL, NULL
 };
 
@@ -69,7 +69,7 @@ PyInit_bungee(void)
   return PyModule_Create (&BungeeModule);
 }
 
-/* Imports BUNGEE module to __main__ and returns a reference to BUNGEE module */
+/* Imports Bungee module to __main__ and returns a reference to Bungee module */
 static PyObject *
 import_mod_bungee (void)
 {
@@ -85,20 +85,20 @@ import_mod_bungee (void)
     }
 
   /* Make our "bungee" module available to Python's main to import */
-  PyObject *_module_str = PyUnicode_FromString ("BUNGEE");
+  PyObject *_module_str = PyUnicode_FromString ("Bungee");
   _mod_bungee = PyImport_Import (_module_str);
-  PyObject_SetAttrString (_mod_main, "BUNGEE", _mod_bungee);
+  PyObject_SetAttrString (_mod_main, "Bungee", _mod_bungee);
   Py_DECREF (_module_str);
 
   return (_mod_bungee);
 }
 
-/* Register BUNGEE module to standard modules table.
+/* Register Bungee module to standard modules table.
    THIS FUNCTION SHOULD BE CALLED BEFORE PyInitialize(). */
 gint
 mod_bungee_register (void)
 {
-  if (PyImport_AppendInittab ("BUNGEE", &PyInit_bungee) == -1)
+  if (PyImport_AppendInittab ("Bungee", &PyInit_bungee) == -1)
     return (-1);
   else
     return (0); /* Python return values are not consistent. Some functions return 1 for success. */
@@ -110,13 +110,13 @@ mod_bungee_init ()
   mod_bungee = import_mod_bungee ();
   if (mod_bungee == NULL)
     {
-      BNG_DBG (_("Unable to import BUNGEE module."));
+      BNG_DBG (_("Unable to import Bungee module."));
       return (-1);
     }
 
   if (bungee_globals_init () != 0)
     {
-      BNG_DBG (_("Unable to initialize GLOBALS dictionary."));
+      BNG_DBG (_("Unable to initialize _globals dictionary."));
       return (-1);
     }
 
@@ -130,7 +130,7 @@ mod_bungee_fini ()
 
   if (bungee_globals_fini () != 0)
     {
-      BNG_DBG (_("Unable to uninitialize GLOBALS dictionary."));
+      BNG_DBG (_("Unable to uninitialize _globals dictionary."));
       return (-1);
     }
 

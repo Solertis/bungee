@@ -38,15 +38,15 @@ bungee_globals_init ()
   PyObject *mod_bungee; /* __main__ module */
 
   /* Barrowed reference to main module*/
-  mod_bungee = PyImport_AddModule ("BUNGEE");
+  mod_bungee = PyImport_AddModule ("Bungee");
   if (mod_bungee == NULL)
     {
-      BNG_WARN (_("Could not access BUNGEE module"));
+      BNG_WARN (_("Could not access Bungee module"));
       return (1);
     }
 
   /* Make our "_globals" dictionary available through BUNGEE module. */
-  PyObject_SetAttrString (mod_bungee, "GLOBALS", _globals);
+  PyObject_SetAttrString (mod_bungee, "_globals", _globals);
 
   return (0);
 }

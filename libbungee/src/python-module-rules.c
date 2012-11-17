@@ -57,7 +57,7 @@ static GData *group_table;
 
 /* String key to GLOBAL rule_table in group_table. This static const string
    is used for quark id lookup optimization. */
-static const gchar *global_group_name = "GLOBAL";
+static const gchar *global_group_name = "_global";
 
 typedef struct
 {
@@ -69,8 +69,8 @@ typedef struct
 
 static PyMethodDef RulesMethods[] =
   {
-    {"APPEND", emb_append_rule, METH_VARARGS,
-     N_("Append a new RULE.")},
+    {"append", emb_append_rule, METH_VARARGS,
+     N_("Append a new rule.")},
     {NULL, NULL, 0, NULL}
   };
 
@@ -117,19 +117,19 @@ void rule_destroy (void *rule)
 /* >>>> Insert new primitives here <<<< */
 /****************************************/
 /*
-  # RULES.APPEND('GroupName', 'RuleName', '''CONDITION()''', 'ACTION()'))
+  # Rules.append('groupname', 'rulename', '''condition()''', 'action()'))
 
-  RULES.APPEND primitive appends a new rule to the rule table. It uses event
+  rules.append primitive appends a new rule to the rule table. It uses event
   driven programming model, where condition determines the action.
 
   Arguments:
   ----------
-  GROUP_NAME - Group name as string.
-  RULE_NAME  - Rule name as string.
-  CONDITION()- Condition should evaluate to boolean.
+  groupname - Group name as string.
+  rulename  - Rule name as string.
+  condition()- Condition should evaluate to boolean.
              - Condition() is a callback Python function. It takes no
 	       argument and returns bool.
-  ACTION()   - action() is callback python function. It takes dictionary
+  action()   - action() is callback python function. It takes dictionary
                object returned by previous RULE or INPUT as argument and
 	       returns a new dictionary (may be same or modified).
 
@@ -143,11 +143,11 @@ emb_append_rule (PyObject *self, PyObject *args)
   gchar *group_name, *rule_name;
   rule_t rule;
 
-  if(!PyArg_ParseTuple (args, "ssO!O!:APPEND", &group_name, &rule_name,
+  if(!PyArg_ParseTuple (args, "ssO!O!:append", &group_name, &rule_name,
 			&PyFunction_Type, &rule.condt,
 			&PyFunction_Type, &rule.action))
     {
-      BNG_DBG (_("Error parsing RULES.APPEND(...) rule."));
+      BNG_DBG (_("Error parsing Rules.append(...) rule."));
     }
 
 /* Let PyArg_ParseTuple do the validation via O!. */
@@ -190,7 +190,7 @@ emb_append_rule (PyObject *self, PyObject *args)
 static PyObject* PyInit_rules (void);
 
 static PyModuleDef RulesModule = {
-  PyModuleDef_HEAD_INIT, "RULES", NULL, -1, RulesMethods,
+  PyModuleDef_HEAD_INIT, "Rules", NULL, -1, RulesMethods,
   NULL, NULL, NULL, NULL
 };
 
@@ -217,9 +217,9 @@ import_mod_rules (void)
     }
 
   /* Make our "rules" module available to Python's main to import */
-  PyObject *_module_str = PyUnicode_FromString ("RULES");
+  PyObject *_module_str = PyUnicode_FromString ("Rules");
   _mod_rules = PyImport_Import (_module_str);
-  PyObject_SetAttrString (_mod_main, "RULES", _mod_rules);
+  PyObject_SetAttrString (_mod_main, "Rules", _mod_rules);
   Py_DECREF (_module_str);
 
   return (_mod_rules);
@@ -229,7 +229,7 @@ import_mod_rules (void)
 gint
 mod_rules_register (void)
 {
-  if (PyImport_AppendInittab ("RULES", &PyInit_rules) == -1)
+  if (PyImport_AppendInittab ("Rules", &PyInit_rules) == -1)
     return (-1);
   else
     return (0); /* Python return values are not consistent. Some functions return 1 for success. */
