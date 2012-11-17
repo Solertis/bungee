@@ -127,11 +127,11 @@ rule: TRULE TRULE_NAME TRULE_CONDT
     }
 
   if ($3 == NULL)
-    fprintf (yyget_out (yyscanner), "RULES.APPEND('GLOBAL', '%s', lambda: True, '_ATION_%s'))\n", $2, $2);
+    fprintf (yyget_out (yyscanner), "Rules.append('_global', '%s', lambda: True, '_ation_%s')\n", $2, $2);
   else
-    fprintf (yyget_out (yyscanner), "RULES.APPEND('GLOBAL', '%s', lambda: %s, '_ACTION_%s'))\n", $2, $3, $2);
+    fprintf (yyget_out (yyscanner), "Rules.append('_global', '%s', lambda: %s, '_action_%s')\n", $2, $3, $2);
 
-  fprintf (yyget_out (yyscanner), "def _ACTION_%s():", $2);
+  fprintf (yyget_out (yyscanner), "def _action_%s():", $2);
 
   XFREE ($2);
   XFREE ($3);
@@ -157,11 +157,11 @@ rule: TRULE TRULE_NAME TRULE_CONDT
     }
 
   if ($5 == NULL)
-    fprintf (yyget_out (yyscanner), "RULES.APPEND('%s', '%s', '''lambda: True''', '_ACTION_%s'))\n", $2, $4, $4);
+    fprintf (yyget_out (yyscanner), "Rules.append('%s', '%s', '''lambda: True''', '_action_%s')\n", $2, $4, $4);
   else
-    fprintf (yyget_out (yyscanner), "RULES.APPEND('%s', '%s', '''lambda: %s''', '_ACTION_%s'))\n", $2, $4, $5, $4);
+    fprintf (yyget_out (yyscanner), "Rules.append('%s', '%s', '''lambda: %s''', '_action_%s')\n", $2, $4, $5, $4);
 
-  fprintf (yyget_out (yyscanner), "def _ACTION_%s():", $4);
+  fprintf (yyget_out (yyscanner), "def _action_%s():", $4);
 
   XFREE ($2);
   XFREE ($4);

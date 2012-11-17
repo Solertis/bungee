@@ -274,24 +274,24 @@ RULE { /* Rule Keyword */
   return yyerror (yyscanner, "END keyword should start at the beginning of line.\n");
 }
 
-\$\$ { /* Dictionary of all BUNGEE global variables. */
-  fprintf(yyget_out (yyscanner), "BUNGEE.GLOBALS");
+\$\$ { /* Dictionary of all Bungee global variables. */
+  fprintf(yyget_out (yyscanner), "Bungee._globals");
 }
 
 \$\* { /* All field values in a list. */
-  fprintf(yyget_out (yyscanner), "BUNGEE.GLOBALS.items()");
+  fprintf(yyget_out (yyscanner), "Bungee._globals.items()");
 }
 
 \$\@ { /* All field symbols in a list. */
-  fprintf(yyget_out (yyscanner), "BUNGEE.GLOBALS.keys()");
+  fprintf(yyget_out (yyscanner), "Bungee._globals.keys()");
 }
 
 \$\# { /* Number of fields. */
-  fprintf(yyget_out (yyscanner), "len(BUNGEE.GLOBALS)");
+  fprintf(yyget_out (yyscanner), "len(Bungee._globals)");
 }
 
 \$[a-zA-Z_][a-zA-Z_0-9]* { /* Global variable */
-  fprintf(yyget_out (yyscanner), "BUNGEE.GLOBALS['%s']", yyget_text (yyscanner)+1);
+  fprintf(yyget_out (yyscanner), "Bungee._globals['%s']", yyget_text (yyscanner)+1);
 }
 
 [ \t]+ ECHO;

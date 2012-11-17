@@ -92,13 +92,13 @@ bng_py_init (void)
 {
   if (mod_bungee_register () != 0)
     {
-      BNG_ERR (_("Module BUNGEE registration failed."));
+      BNG_ERR (_("Module Bungee registration failed."));
       return (-1);
     }
 
   if (mod_rules_register () != 0)
     {
-      BNG_ERR (_("Module RULES registration failed."));
+      BNG_ERR (_("Module Rules registration failed."));
       return (-1);
     }
 
@@ -106,13 +106,13 @@ bng_py_init (void)
 
   if (mod_bungee_init () != 0)
     {
-      BNG_ERR (_("Unable to initialize BUNGEE module."));
+      BNG_ERR (_("Unable to initialize Bungee module."));
       return (-1);
     }
 
   if (mod_rules_init () != 0)
     {
-      BNG_ERR (_("Unable to initialize RULES module."));
+      BNG_ERR (_("Unable to initialize Rules module."));
       return (-1);
     }
 
@@ -124,13 +124,13 @@ bng_py_fini (void)
 {
   if (mod_bungee_fini () != 0)
     {
-      BNG_WARN (_("Unable to uninitialize BUNGEE module"));
+      BNG_WARN (_("Unable to uninitialize Bungee module"));
       return (-1);
     }
 
   if (mod_rules_fini () != 0)
     {
-      BNG_WARN (_("Unable to uninitialize RULES module"));
+      BNG_WARN (_("Unable to uninitialize Rules module"));
       return (-1);
     }
 
